@@ -97,125 +97,135 @@ with tab_overview:
         key="overview_date_select",
     )
 
-    # Generate or load baseline scenarios for selected date
-    scen_set = scen_gen.generate_scenario_set(target_date=selected_date, num_scenarios=5, seed=42)
-    tot_forecast = sum(scen_set.point_forecast.values())
-
-    # Establish baseline available inventory (1.25 ratio)
-    stock_dict = {}
-    for c in PRODUCT_CATEGORIES:
-        cat_exp = sum(
-            scen_set.get_expected_demands().get((h.hospital_id, c.category_id), 0.0)
-            for h in HOSPITALS
+    try:
+        # Generate or load baseline scenarios for selected date
+        scen_set = scen_gen.generate_scenario_set(
+            target_date=selected_date, num_scenarios=5, seed=42
         )
-        target_stk = cat_exp * 1.25
-        stock_dict[("W01", c.category_id)] = int(round(target_stk * 0.50))
-        stock_dict[("W02", c.category_id)] = int(round(target_stk * 0.25))
-        stock_dict[("W03", c.category_id)] = int(round(target_stk * 0.25))
+        tot_forecast = sum(scen_set.point_forecast.values())
 
-    tot_stock = sum(stock_dict.values())
-
-    # Run default fast baseline solve if not in session state
-    if st.session_state.get("active_result") is None:
-        with st.spinner("Initializing baseline allocation engine..."):
-            base_res = optimize(
-                warehouse_stock=stock_dict,
-                scenario_set=scen_set,
-                demands=scen_set.point_forecast,
-                policy="stochastic_milp",
-                min_service_coverage=0.50,
-                time_limit_sec=10.0,
-                realized_demand=scen_set.realized_demand,
-                network=network,
+        # Establish baseline available inventory (1.25 ratio)
+        stock_dict = {}
+        for c in PRODUCT_CATEGORIES:
+            cat_exp = sum(
+                scen_set.get_expected_demands().get((h.hospital_id, c.category_id), 0.0)
+                for h in HOSPITALS
             )
-            st.session_state["active_result"] = base_res
-            st.session_state["active_scenario_set"] = scen_set
+            target_stk = cat_exp * 1.25
+            stock_dict[("W01", c.category_id)] = int(round(target_stk * 0.50))
+            stock_dict[("W02", c.category_id)] = int(round(target_stk * 0.25))
+            stock_dict[("W03", c.category_id)] = int(round(target_stk * 0.25))
 
-    res: OptimizationResult = st.session_state["active_result"]
+        tot_stock = sum(stock_dict.values())
 
-    # Top KPI Row
-    k1, k2, k3, k4, k5 = st.columns(5)
-    with k1:
-        st.metric("Total Forecast Demand", f"{tot_forecast:,.0f} units", delta=None)
-    with k2:
-        st.metric(
-            "Available Depot Stock",
-            f"{tot_stock:,.0f} units",
-            delta=f"{(tot_stock / tot_forecast):.1%} ratio",
-        )
-    with k3:
-        st.metric(
-            "Total Shipped",
-            f"{res.total_units_shipped:,.0f} units",
-            delta=f"{res.fairness.mean_facility_fill_rate:.1%} fill",
-        )
-    with k4:
-        st.metric(
-            "Worst Facility Fill",
-            f"{res.fairness.worst_facility_fill_rate:.1%}",
-            delta=f"{res.fairness.coverage_disparity:.1%} disparity",
-            delta_color="inverse",
-        )
-    with k5:
-        st.metric(
-            "Total Supply Chain Cost",
-            f"${res.total_cost:,.2f}",
-            delta=f"${res.shortage_penalty:,.0f} penalties",
-            delta_color="inverse",
-        )
+        # Run default fast baseline solve if not in session state
+        if st.session_state.get("active_result") is None:
+            with st.spinner("Initializing baseline allocation engine..."):
+                base_res = optimize(
+                    warehouse_stock=stock_dict,
+                    scenario_set=scen_set,
+                    demands=scen_set.point_forecast,
+                    policy="stochastic_milp",
+                    min_service_coverage=0.50,
+                    time_limit_sec=10.0,
+                    realized_demand=scen_set.realized_demand,
+                    network=network,
+                )
+                st.session_state["active_result"] = base_res
+                st.session_state["active_scenario_set"] = scen_set
 
-    st.markdown("---")
+        res: OptimizationResult = st.session_state["active_result"]
 
-    # Layout: Map on left, Time Series on right
-    map_col, ts_col = st.columns([0.55, 0.45])
+        # Top KPI Row
+        k1, k2, k3, k4, k5 = st.columns(5)
+        with k1:
+            st.metric("Total Forecast Demand", f"{tot_forecast:,.0f} units", delta=None)
+        with k2:
+            st.metric(
+                "Available Depot Stock",
+                f"{tot_stock:,.0f} units",
+                delta=f"{(tot_stock / tot_forecast):.1%} ratio",
+            )
+        with k3:
+            st.metric(
+                "Total Shipped",
+                f"{res.total_units_shipped:,.0f} units",
+                delta=f"{res.fairness.mean_facility_fill_rate:.1%} fill",
+            )
+        with k4:
+            st.metric(
+                "Worst Facility Fill",
+                f"{res.fairness.worst_facility_fill_rate:.1%}",
+                delta=f"{res.fairness.coverage_disparity:.1%} disparity",
+                delta_color="inverse",
+            )
+        with k5:
+            st.metric(
+                "Total Supply Chain Cost",
+                f"${res.total_cost:,.2f}",
+                delta=f"${res.shortage_penalty:,.0f} penalties",
+                delta_color="inverse",
+            )
 
-    with map_col:
-        st.plotly_chart(
-            plot_facility_map(result=res, network=network),
-            use_container_width=True,
-        )
+        st.markdown("---")
 
-    with ts_col:
-        # Facility and category selectors for time-series inspection
-        ts_c1, ts_c2 = st.columns(2)
-        with ts_c1:
-            sel_hosp = st.selectbox(
-                "Hospital:",
-                options=[h.hospital_id for h in HOSPITALS],
-                index=0,
-                format_func=lambda hid: (
-                    f"{hid} ({next(h.name for h in HOSPITALS if h.hospital_id == hid)})"
+        # Layout: Map on left, Time Series on right
+        map_col, ts_col = st.columns([0.55, 0.45])
+
+        with map_col:
+            st.plotly_chart(
+                plot_facility_map(result=res, network=network),
+                use_container_width=True,
+            )
+
+        with ts_col:
+            # Facility and category selectors for time-series inspection
+            ts_c1, ts_c2 = st.columns(2)
+            with ts_c1:
+                sel_hosp = st.selectbox(
+                    "Hospital:",
+                    options=[h.hospital_id for h in HOSPITALS],
+                    index=0,
+                    format_func=lambda hid: (
+                        f"{hid} ({next(h.name for h in HOSPITALS if h.hospital_id == hid)})"
+                    ),
+                    key="ov_ts_hosp",
+                )
+            with ts_c2:
+                sel_cat = st.selectbox(
+                    "Category:",
+                    options=[c.category_id for c in PRODUCT_CATEGORIES],
+                    index=0,
+                    key="ov_ts_cat",
+                )
+
+            pt_f = scen_set.point_forecast.get((sel_hosp, sel_cat), 0.0)
+            lb_f = scen_set.lower_bound.get((sel_hosp, sel_cat), 0.0)
+            ub_f = scen_set.upper_bound.get((sel_hosp, sel_cat), 0.0)
+
+            st.plotly_chart(
+                plot_forecast_timeseries(
+                    df_featured=df_featured,
+                    target_date=selected_date,
+                    facility_id=sel_hosp,
+                    category_id=sel_cat,
+                    point_forecast=pt_f,
+                    lower_bound=lb_f,
+                    upper_bound=ub_f,
                 ),
-                key="ov_ts_hosp",
-            )
-        with ts_c2:
-            sel_cat = st.selectbox(
-                "Category:",
-                options=[c.category_id for c in PRODUCT_CATEGORIES],
-                index=0,
-                key="ov_ts_cat",
+                use_container_width=True,
             )
 
-        pt_f = scen_set.point_forecast.get((sel_hosp, sel_cat), 0.0)
-        lb_f = scen_set.lower_bound.get((sel_hosp, sel_cat), 0.0)
-        ub_f = scen_set.upper_bound.get((sel_hosp, sel_cat), 0.0)
+        st.markdown("---")
+        st.markdown("#### Facility Allocation & Clinical Shortage Risk Ranking")
+        render_hospital_risk_ranking(res)
 
-        st.plotly_chart(
-            plot_forecast_timeseries(
-                df_featured=df_featured,
-                target_date=selected_date,
-                facility_id=sel_hosp,
-                category_id=sel_cat,
-                point_forecast=pt_f,
-                lower_bound=lb_f,
-                upper_bound=ub_f,
-            ),
-            use_container_width=True,
+    except Exception as exc:
+        st.error(f"⚠️ Network Overview Telemetry Initialization Notice: {exc}")
+        st.info(
+            "The operational snapshot could not load data for the selected date. "
+            "Other workspace tabs (Scenario Lab, Explainability, Stress Testing, Responsible AI) remain accessible."
         )
-
-    st.markdown("---")
-    st.markdown("#### Facility Allocation & Clinical Shortage Risk Ranking")
-    render_hospital_risk_ranking(res)
 
 # ==============================================================================
 # TAB 2: SCENARIO LAB (INTERACTIVE OPTIMIZATION)
@@ -295,66 +305,69 @@ with tab_lab:
 
     if run_btn:
         with st.spinner("Formulating constraints and solving Mixed-Integer Linear Program..."):
-            surge_mult = 1.0 + (lab_surge / 100.0)
-            stock_ratio_f = lab_stock_ratio / 100.0
-            cap_scale_f = lab_capacity_scale / 100.0
+            try:
+                surge_mult = 1.0 + (lab_surge / 100.0)
+                stock_ratio_f = lab_stock_ratio / 100.0
+                cap_scale_f = lab_capacity_scale / 100.0
 
-            # 1. Generate scenario set with surge multiplier
-            scen_set_lab = scen_gen.generate_scenario_set(
-                target_date=lab_date,
-                num_scenarios=5,
-                seed=42,
-                surge_multiplier=surge_mult,
-            )
-
-            # 2. Network parameters
-            params_lab = NetworkParameters(
-                vehicle_capacity_units=int(lab_veh_cap),
-                warehouse_dispatch_capacities={
-                    w.warehouse_id: int(30000 * cap_scale_f) for w in WAREHOUSES
-                },
-                max_route_capacity_units=int(12000 * cap_scale_f),
-            )
-            net_lab = TransportationNetwork(params=params_lab)
-
-            # 3. Warehouse stock
-            exp_demands_lab = scen_set_lab.get_expected_demands()
-            stock_dict_lab = {}
-            for c in PRODUCT_CATEGORIES:
-                tot_c = sum(
-                    exp_demands_lab.get((h.hospital_id, c.category_id), 0.0) for h in HOSPITALS
+                # 1. Generate scenario set with surge multiplier
+                scen_set_lab = scen_gen.generate_scenario_set(
+                    target_date=lab_date,
+                    num_scenarios=5,
+                    seed=42,
+                    surge_multiplier=surge_mult,
                 )
-                stk_c = tot_c * stock_ratio_f
-                stock_dict_lab[("W01", c.category_id)] = int(round(stk_c * 0.50))
-                stock_dict_lab[("W02", c.category_id)] = int(round(stk_c * 0.25))
-                stock_dict_lab[("W03", c.category_id)] = int(round(stk_c * 0.25))
 
-            # 4. Execute solver
-            opt_res = optimize(
-                warehouse_stock=stock_dict_lab,
-                scenario_set=scen_set_lab,
-                demands=scen_set_lab.point_forecast,
-                policy=lab_policy.lower(),
-                min_service_coverage=lab_min_coverage,
-                time_limit_sec=lab_time_limit,
-                realized_demand=scen_set_lab.realized_demand,
-                network=net_lab,
-            )
+                # 2. Network parameters
+                params_lab = NetworkParameters(
+                    vehicle_capacity_units=int(lab_veh_cap),
+                    warehouse_dispatch_capacities={
+                        w.warehouse_id: int(30000 * cap_scale_f) for w in WAREHOUSES
+                    },
+                    max_route_capacity_units=int(12000 * cap_scale_f),
+                )
+                net_lab = TransportationNetwork(params=params_lab)
 
-            # 5. Build Decision Explanation
-            dec_expl = AllocationDecisionExplainer(network=net_lab)
-            dec_explanation = dec_expl.explain(
-                result=opt_res,
-                demands=scen_set_lab.point_forecast,
-                warehouse_stock=stock_dict_lab,
-                min_service_coverage=lab_min_coverage,
-                policy_name=lab_policy,
-            )
+                # 3. Warehouse stock
+                exp_demands_lab = scen_set_lab.get_expected_demands()
+                stock_dict_lab = {}
+                for c in PRODUCT_CATEGORIES:
+                    tot_c = sum(
+                        exp_demands_lab.get((h.hospital_id, c.category_id), 0.0) for h in HOSPITALS
+                    )
+                    stk_c = tot_c * stock_ratio_f
+                    stock_dict_lab[("W01", c.category_id)] = int(round(stk_c * 0.50))
+                    stock_dict_lab[("W02", c.category_id)] = int(round(stk_c * 0.25))
+                    stock_dict_lab[("W03", c.category_id)] = int(round(stk_c * 0.25))
 
-            st.session_state["active_result"] = opt_res
-            st.session_state["active_explanation"] = dec_explanation
-            st.session_state["active_scenario_set"] = scen_set_lab
-            st.session_state["active_network"] = net_lab
+                # 4. Execute solver
+                opt_res = optimize(
+                    warehouse_stock=stock_dict_lab,
+                    scenario_set=scen_set_lab,
+                    demands=scen_set_lab.point_forecast,
+                    policy=lab_policy.lower(),
+                    min_service_coverage=lab_min_coverage,
+                    time_limit_sec=lab_time_limit,
+                    realized_demand=scen_set_lab.realized_demand,
+                    network=net_lab,
+                )
+
+                # 5. Build Decision Explanation
+                dec_expl = AllocationDecisionExplainer(network=net_lab)
+                dec_explanation = dec_expl.explain(
+                    result=opt_res,
+                    demands=scen_set_lab.point_forecast,
+                    warehouse_stock=stock_dict_lab,
+                    min_service_coverage=lab_min_coverage,
+                    policy_name=lab_policy,
+                )
+
+                st.session_state["active_result"] = opt_res
+                st.session_state["active_explanation"] = dec_explanation
+                st.session_state["active_scenario_set"] = scen_set_lab
+                st.session_state["active_network"] = net_lab
+            except Exception as exc:
+                st.error(f"⚠️ Optimization Execution Notice: {exc}")
 
     # Display Active Results
     cur_res: OptimizationResult = st.session_state.get("active_result")
@@ -657,50 +670,55 @@ with tab_stress:
         name, surge_m, stk_r, cap_s, v_cap, alpha, t_limit = triggered_stress
         st.info(f"Executing Stress Test: **{name}**...")
 
-        scen_stress = scen_gen.generate_scenario_set(
-            target_date="2025-11-08", num_scenarios=5, seed=42, surge_multiplier=surge_m
-        )
-        exp_d_s = scen_stress.get_expected_demands()
-
-        stk_s = {}
-        for c in PRODUCT_CATEGORIES:
-            tot_c = sum(exp_d_s.get((h.hospital_id, c.category_id), 0.0) for h in HOSPITALS)
-            stk_c = tot_c * stk_r
-            stk_s[("W01", c.category_id)] = int(round(stk_c * 0.50))
-            stk_s[("W02", c.category_id)] = int(round(stk_c * 0.25))
-            stk_s[("W03", c.category_id)] = int(round(stk_c * 0.25))
-
-        p_stress = NetworkParameters(
-            vehicle_capacity_units=v_cap,
-            warehouse_dispatch_capacities={w.warehouse_id: int(30000 * cap_s) for w in WAREHOUSES},
-            max_route_capacity_units=int(12000 * cap_s),
-        )
-        net_stress = TransportationNetwork(params=p_stress)
-
-        res_stress = optimize(
-            warehouse_stock=stk_s,
-            scenario_set=scen_stress,
-            demands=scen_stress.point_forecast,
-            policy="stochastic_milp",
-            min_service_coverage=alpha,
-            time_limit_sec=t_limit,
-            realized_demand=scen_stress.realized_demand,
-            network=net_stress,
-        )
-
-        st.session_state["active_result"] = res_stress
-        st.session_state["last_stress_scenario"] = name
-
-        if res_stress.status in ["OPTIMAL", "FEASIBLE"]:
-            st.success(
-                f"**Stress Test Completed: {name}** &bull; Status: {res_stress.status} &bull; "
-                f"Cost: ${res_stress.total_cost:,.2f} &bull; Fill Rate: {res_stress.fairness.mean_facility_fill_rate:.1%}"
+        try:
+            scen_stress = scen_gen.generate_scenario_set(
+                target_date="2025-11-08", num_scenarios=5, seed=42, surge_multiplier=surge_m
             )
-        else:
-            st.error(
-                f"**Stress Test Infeasibility Detected: {name}** &bull; Status: {res_stress.status} &bull; "
-                "Constraints cannot be satisfied mathematically."
+            exp_d_s = scen_stress.get_expected_demands()
+
+            stk_s = {}
+            for c in PRODUCT_CATEGORIES:
+                tot_c = sum(exp_d_s.get((h.hospital_id, c.category_id), 0.0) for h in HOSPITALS)
+                stk_c = tot_c * stk_r
+                stk_s[("W01", c.category_id)] = int(round(stk_c * 0.50))
+                stk_s[("W02", c.category_id)] = int(round(stk_c * 0.25))
+                stk_s[("W03", c.category_id)] = int(round(stk_c * 0.25))
+
+            p_stress = NetworkParameters(
+                vehicle_capacity_units=v_cap,
+                warehouse_dispatch_capacities={
+                    w.warehouse_id: int(30000 * cap_s) for w in WAREHOUSES
+                },
+                max_route_capacity_units=int(12000 * cap_s),
             )
+            net_stress = TransportationNetwork(params=p_stress)
+
+            res_stress = optimize(
+                warehouse_stock=stk_s,
+                scenario_set=scen_stress,
+                demands=scen_stress.point_forecast,
+                policy="stochastic_milp",
+                min_service_coverage=alpha,
+                time_limit_sec=t_limit,
+                realized_demand=scen_stress.realized_demand,
+                network=net_stress,
+            )
+
+            st.session_state["active_result"] = res_stress
+            st.session_state["last_stress_scenario"] = name
+
+            if res_stress.status in ["OPTIMAL", "FEASIBLE"]:
+                st.success(
+                    f"**Stress Test Completed: {name}** &bull; Status: {res_stress.status} &bull; "
+                    f"Cost: ${res_stress.total_cost:,.2f} &bull; Fill Rate: {res_stress.fairness.mean_facility_fill_rate:.1%}"
+                )
+            else:
+                st.error(
+                    f"**Stress Test Infeasibility Detected: {name}** &bull; Status: {res_stress.status} &bull; "
+                    "Constraints cannot be satisfied mathematically."
+                )
+        except Exception as exc:
+            st.error(f"⚠️ Stress Test Execution Failed: {exc}")
 
     st.markdown("---")
     st.markdown("##### 2. Audited Benchmark Baseline Comparison (30 Instances)")

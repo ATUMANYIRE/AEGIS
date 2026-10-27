@@ -32,11 +32,11 @@ ENV/
 htmlcov/
 .ruff_cache/
 
-# Data and large artifacts (keep schemas / manifests)
+# Data and large artifacts (keep core runtime datasets and manifests)
 data/raw/*.csv
-data/raw/*.parquet
+!data/raw/synthetic_consumables.parquet
 !data/raw/manifest.json
-data/processed/*.parquet
+!data/processed/featured_dataset.parquet
 !data/processed/manifest.json
 
 # IDE

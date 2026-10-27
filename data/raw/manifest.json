@@ -1,7 +1,7 @@
 {
   "dataset_name": "aegis_synthetic_consumables_raw",
   "version": "1.0.0",
-  "created_at_utc": "2026-10-27T06:10:10.204809+00:00",
+  "created_at_utc": "2026-10-27T14:24:00.842800+00:00",
   "seed": 42,
   "row_count": 21900,
   "date_range": [

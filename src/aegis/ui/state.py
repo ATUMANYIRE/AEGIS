@@ -1,6 +1,5 @@
 """State management and safe caching protocols for AEGIS Streamlit Workspace."""
 
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -11,12 +10,13 @@ from aegis.models.regressor import XGBoostDemandForecaster
 from aegis.models.serialization import ModelSerializer
 from aegis.scenarios.generator import ForecastScenarioGenerator
 from aegis.scenarios.network import TransportationNetwork
+from aegis.utils.paths import resolve_repo_path
 
 
 @st.cache_resource
 def get_cached_model_and_explainer() -> tuple[XGBoostDemandForecaster | None, TreeSHAPExplainer]:
     """Cache immutable model artifact and TreeSHAP explainer safely across app sessions."""
-    model_path = Path("models/xgboost_demand.joblib")
+    model_path = resolve_repo_path("models/xgboost_demand.joblib")
     forecaster: XGBoostDemandForecaster | None = None
     if model_path.exists():
         try:
@@ -32,10 +32,14 @@ def get_cached_model_and_explainer() -> tuple[XGBoostDemandForecaster | None, Tr
 
 @st.cache_data
 def get_cached_featured_data() -> pd.DataFrame:
-    """Load featured time-series dataset with safe in-memory caching."""
-    data_path = Path("data/processed/featured_dataset.parquet")
+    """Load featured time-series dataset with safe in-memory caching and fallback."""
+    data_path = resolve_repo_path("data/processed/featured_dataset.parquet")
     if data_path.exists():
         return pd.read_parquet(data_path)
+    # Fallback to scenario generator's loaded or synthesized dataset
+    scen_gen = get_cached_scenario_generator()
+    if scen_gen.df_featured is not None:
+        return scen_gen.df_featured
     return pd.DataFrame()
 
 
@@ -43,9 +47,9 @@ def get_cached_featured_data() -> pd.DataFrame:
 def get_cached_benchmark_metrics() -> dict[str, pd.DataFrame]:
     """Load verified benchmark metrics and paired statistics."""
     res: dict[str, pd.DataFrame] = {}
-    c16_path = Path("metrics/optimization_benchmark_summary_common16.csv")
-    pairwise_path = Path("metrics/paired_policy_differences.csv")
-    raw_path = Path("metrics/optimization_benchmark_raw.csv")
+    c16_path = resolve_repo_path("metrics/optimization_benchmark_summary_common16.csv")
+    pairwise_path = resolve_repo_path("metrics/paired_policy_differences.csv")
+    raw_path = resolve_repo_path("metrics/optimization_benchmark_raw.csv")
 
     if c16_path.exists():
         res["common16"] = pd.read_csv(c16_path)

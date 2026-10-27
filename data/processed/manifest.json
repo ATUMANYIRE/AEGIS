@@ -1,7 +1,7 @@
 {
   "dataset_name": "aegis_featured_consumables_processed",
   "version": "1.0.0",
-  "created_at_utc": "2026-10-27T06:10:10.942257+00:00",
+  "created_at_utc": "2026-10-27T14:24:01.447258+00:00",
   "seed": 42,
   "row_count": 21900,
   "date_range": [

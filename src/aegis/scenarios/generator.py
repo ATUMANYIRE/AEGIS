@@ -10,6 +10,10 @@ import pandas as pd
 
 from aegis.models.regressor import XGBoostDemandForecaster
 from aegis.models.serialization import ModelSerializer
+from aegis.utils.logging import setup_logger
+from aegis.utils.paths import resolve_repo_path
+
+logger = setup_logger("aegis.scenarios")
 
 
 @dataclass
@@ -63,11 +67,39 @@ class ForecastScenarioGenerator:
         self._load_artifacts()
 
     def _load_artifacts(self) -> None:
-        """Load serialized model and featured dataset."""
+        """Load serialized model and featured dataset with automatic cold-start resolution."""
+        self.model_path = resolve_repo_path(self.model_path)
+        self.data_path = resolve_repo_path(self.data_path)
+
         if self.model_path.exists():
             self.model, self.metadata = ModelSerializer.load(self.model_path)
+        else:
+            logger.warning("Model artifact not found at %s", self.model_path)
+
         if self.data_path.exists():
             self.df_featured = pd.read_parquet(self.data_path)
+        else:
+            logger.warning(
+                "Featured dataset not found at %s. Attempting cold-start deterministic synthesis...",
+                self.data_path,
+            )
+            try:
+                from aegis.config import AegisConfig
+                from aegis.data.generator import DeterministicSyntheticGenerator
+                from aegis.features.engineer import FeatureEngineer
+
+                cfg = AegisConfig(seed=42, simulation_days=365)
+                gen = DeterministicSyntheticGenerator(config=cfg)
+                raw_df = gen.generate(scenario="baseline")
+                engineer = FeatureEngineer()
+                self.df_featured = engineer.generate_features(raw_df)
+                self.data_path.parent.mkdir(parents=True, exist_ok=True)
+                self.df_featured.to_parquet(self.data_path, index=False)
+                logger.info(
+                    "Successfully synthesized and saved featured dataset to %s", self.data_path
+                )
+            except Exception as e:
+                logger.error("Failed cold-start synthesis of featured dataset: %s", e)
 
     def generate_scenario_set(
         self,
@@ -95,7 +127,15 @@ class ForecastScenarioGenerator:
             Calibrated demand scenarios with out-of-sample realized demand.
         """
         if self.df_featured is None or self.model is None:
-            raise RuntimeError("Model or dataset not loaded.")
+            missing = []
+            if self.model is None:
+                missing.append(f"Model forecaster (path checked: {self.model_path})")
+            if self.df_featured is None:
+                missing.append(f"Featured dataset (path checked: {self.data_path})")
+            raise RuntimeError(
+                f"Scenario generator cannot operate: missing {', '.join(missing)}. "
+                "Ensure artifacts exist in the repository or allow cold-start synthesis."
+            )
 
         target_dt = pd.to_datetime(target_date).date()
         date_mask = pd.to_datetime(self.df_featured["date"]).dt.date == target_dt
