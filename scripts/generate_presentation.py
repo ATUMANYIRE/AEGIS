@@ -117,7 +117,7 @@ def create_deck():
     b_box = s1.shapes.add_textbox(Inches(1.8), Inches(4.8), Inches(9.7), Inches(0.8))
     tf_b = b_box.text_frame
     p_b = tf_b.paragraphs[0]
-    p_b.text = "DATANOVA 2026 Submission  •  Milestone 4 Final Release  •  78 Passing Tests  •  Zero Fabricated Metrics"
+    p_b.text = "DATANOVA 2026 Submission  •  Milestone 4 Final Release  •  79 Passing Tests  •  Audited & Reconciled Metrics"
     p_b.font.size = Pt(11)
     p_b.font.bold = True
     p_b.font.color.rgb = C_SAGE
@@ -287,7 +287,7 @@ def create_deck():
         ),
         (
             "2. Probabilistic Forecasting",
-            "Quantile GBDT (reg:quantileerror) producing point forecasts alongside 10th and 90th percentile bounds. Validated test WAPE: 14.62%, empirical interval coverage: 82.3% at nominal 80%.",
+            "Quantile GBDT producing point forecasts alongside 10th and 90th percentile bounds. Validated test WAPE: 14.62% (MAE: 54.240 vs Seasonal-Naive: 113.339; -52.1% error reduction). Empirical 80% interval coverage: 84.64% on held-out test data.",
             C_BLUE,
         ),
         (
@@ -362,6 +362,13 @@ def create_deck():
         tf,
         "Where pi_short reflects clinical triage weights (Level 1 Trauma = 3.0x, Regional = 2.0x, Community = 1.2x, Specialty = 1.0x).",
         font_size=10,
+    )
+    add_bullet(
+        tf,
+        "• Explicit Cost Distinction: Physical cash freight (distance, vehicle trips, route fees) is ~$34k–$45k. Modeled shortage penalty ($150–$450/unit) reflects patient triage risk.",
+        font_size=10,
+        color=C_AMBER,
+        bold=True,
     )
 
     add_card(s5, 6.833, 1.6, 5.7, 5.2)
@@ -473,17 +480,31 @@ def create_deck():
 
     headers = [
         "Policy Architecture",
-        "Feasible Instances",
-        "Mean Fill Rate",
-        "Mean Total Cost ($)",
-        "Shortage Penalty ($)",
-        "Mean Solve Time",
+        "Feasibility Rate (30 runs)",
+        "Mean Fill Rate (N=16)",
+        "Cash Freight Cost",
+        "Shortage Penalty",
+        "Modeled Total Cost",
     ]
     data = [
-        ["Deterministic MILP (HiGHS)", "21 / 25 (84%)", "95.8%", "$214,520", "$14,200", "0.42 s"],
-        ["Two-Stage Stochastic MILP", "18 / 25 (72%)", "95.6%", "$218,140", "$14,850", "1.85 s"],
-        ["Demand-Priority Greedy", "20 / 25 (80%)", "91.2%", "$264,800", "$32,100", "0.01 s"],
-        ["Proportional Allocation", "24 / 25 (96%)", "88.4%", "$295,400", "$48,900", "0.004 s"],
+        [
+            "Two-Stage Stochastic MILP",
+            "25 / 30 (83.3%)",
+            "99.13%",
+            "$44,623",
+            "$233,435",
+            "$278,058",
+        ],
+        [
+            "Deterministic MILP (HiGHS)",
+            "21 / 30 (70.0%)*",
+            "96.95%",
+            "$33,732",
+            "$414,728",
+            "$448,459",
+        ],
+        ["Demand-Priority Greedy", "20 / 30 (66.7%)", "96.78%", "$38,410", "$420,264", "$458,674"],
+        ["Proportional Allocation", "24 / 30 (80.0%)", "95.79%", "$37,783", "$429,860", "$467,643"],
     ]
 
     for c, h in enumerate(headers):
@@ -511,17 +532,23 @@ def create_deck():
     tf = tb.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = "Key Verified Audit Insights (Milestone 2 Audit & Repair):"
+    p.text = "Audited Benchmark Evidence (Common Feasible Subset N=16 Matched Scenarios):"
     p.font.bold = True
     p.font.size = Pt(13)
     p.font.color.rgb = C_BLUE
     add_bullet(
         tf,
-        "• Common-Feasible Subset (N=16 matched pairs): Deterministic MILP achieves identical service coverage while reducing total logistics cost by 19.1% relative to Greedy ($50,280 saved per dispatch) and 27.4% relative to Proportional.",
+        "• Stochastic MILP Dominance: Two-Stage Stochastic MILP cuts modeled total cost by -$170,401 (-38.0%) vs Deterministic MILP and -$189,585 (-40.5%) vs Proportional (p < 0.0001, 95% bootstrap CI).",
     )
     add_bullet(
         tf,
-        "• Integrality & Feasibility Guarantee: Every evaluated allocation passes independent feasibility checks with zero warehouse inventory overdraw and strict adherence to vehicle capacity limits.",
+        "• Cash Freight vs Modeled Penalties: Stochastic MILP spends ~$6.8k–$10.8k more in physical freight consolidation to satisfy demand under upper-tail surges, eliminating over $180k in catastrophic hospital shortage penalties.",
+    )
+    add_bullet(
+        tf,
+        "• Note: Synthetic simulation across 30 instances (6 regimes). Modeled total costs reflect clinical triage penalties ($150–$450/unit); physical cash freight spend is $34k–$45k. *4 Det MILP runs had valid incumbents at time limit.",
+        font_size=10,
+        color=C_MUTED,
     )
 
     # ==========================================================================
@@ -657,11 +684,11 @@ def create_deck():
     p.font.color.rgb = C_SAGE
     add_bullet(
         tf,
-        "• 22% Reduction in Preventable Shortages: Level 1 Trauma protection ensures critical surgical consumables remain stocked during regional surges.",
+        "• 49% Reduction in Preventable Shortages: Stochastic MILP slashes mean unmet demand from 1,862 units to 937.9 units on the common benchmark.",
     )
     add_bullet(
         tf,
-        "• 19.1% Reduction in Operating Costs: High route consolidation eliminates redundant dispatches, saving ~$50k per regional restocking cycle.",
+        "• 38%–40% Modeled Cost Reduction: Multi-scenario hedging eliminates $170k–$190k in emergency clinical penalties while optimizing physical fleet routing.",
     )
     add_bullet(
         tf,

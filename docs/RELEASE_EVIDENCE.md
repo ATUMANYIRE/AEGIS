@@ -22,10 +22,10 @@ The forecasting engine was benchmarked on the chronologically isolated test set 
 
 | Model Architecture | MAE (Units) | RMSE (Units) | WAPE (%) | Interval Coverage (Nominal 80%) | Mean Interval Width (Units) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Seasonal-Naive (7-day lag)** | 78.45 | 104.12 | 21.14% | N/A | N/A |
-| **Moving-Average (7-day roll)** | 71.30 | 96.85 | 19.22% | N/A | N/A |
-| **Regularized Ridge Regression**| 62.15 | 84.40 | 16.75% | 79.1% | 178.4 |
-| **XGBoost Quantile Forecaster** | **54.24** | **74.18** | **14.62%** | **82.3%** | **164.2** |
+| **Seasonal-Naive (7-day lag)** | 113.34 | 257.52 | 30.55% | 76.70% | 204.02 |
+| **Moving-Average (7-day roll)** | 98.23 | 195.82 | 26.48% | 76.91% | 219.68 |
+| **Regularized Ridge Regression**| 77.10 | 150.57 | 20.78% | 74.64% | 135.39 |
+| **XGBoost Quantile Forecaster** | **54.24** | **136.65** | **14.62%** | **84.64%** | **201.88** |
 
 ### 2.2 Leakage Prevention Verification
 - **Chronological Split Integrity:** Confirmed $\max(\text{Train Date}) < \min(\text{Val Date}) < \min(\text{Test Date})$.
@@ -45,17 +45,20 @@ From [`metrics/optimization_benchmark_summary.csv`](file:///E:/Projects/aegis/me
 
 | Allocation Policy | Feasible Instances | Mean Total Cost ($) | Mean Transport ($) | Route Fixed ($) | Vehicle Trip ($) | Shortage Penalty ($) | Mean Fill Rate | Mean Solve Time |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Deterministic MILP** | 21 / 25 | $214,520 | $84,120 | $62,400 | $53,800 | $14,200 | 95.8% | 0.42 s |
-| **Stochastic MILP** | 18 / 25 | $218,140 | $85,450 | $64,100 | $53,740 | $14,850 | 95.6% | 1.85 s |
-| **Demand Greedy** | 20 / 25 | $264,800 | $89,300 | $86,400 | $57,000 | $32,100 | 91.2% | 0.01 s |
-| **Proportional** | 24 / 25 | $295,400 | $88,200 | $89,100 | $69,200 | $48,900 | 88.4% | 0.004 s |
+| **Stochastic MILP** | **25 / 30** | **$588,333** | $40,482 | N/A | N/A | $547,851 | 89.8% | 6.09 s |
+| **Proportional** | 24 / 30 | $692,943 | $36,213 | N/A | N/A | $656,730 | 90.9% | 0.002 s |
+| **Deterministic MILP** | 21 / 30* | $768,953 | $30,701 | N/A | N/A | $738,252 | 85.8% | 9.82 s |
+| **Demand Greedy** | 20 / 30 | $486,288** | $39,476 | N/A | N/A | $446,812 | 96.8% | 0.001 s |
 
-*(Note: 5 instances in Regime 6 'extreme_stockout_high_fairness' are mathematically infeasible under $\alpha_{\min}=0.90$ across all policies, triggering explicit `FairnessRelaxationAnalyzer` diagnostics.)*
+*(Note: 5 instances in Regime 6 'Infeasible_Target_Stress' are mathematically infeasible under $\alpha_{\min}=0.95$ across all policies, triggering explicit `FairnessRelaxationAnalyzer` diagnostics. *4 Det MILP runs had feasible incumbents at 20s time limit. **Greedy failed 10 instances, excluding severe stress scenarios.)*
 
 ### 3.2 Aligned Common-Feasible Subset ($N=16$ Mutually Feasible Instances)
-On the mutually feasible subset, MILP policies demonstrate decisive superiority:
-- **Deterministic MILP vs. Greedy:** Mean paired cost reduction of **$50,280** (19.1% saving) due to load consolidation amortizing fixed route fees.
-- **Deterministic MILP vs. Proportional:** Mean paired cost reduction of **$80,880** (27.4% saving) driven by clinical triage prioritization eliminating high-multiplier trauma center shortages.
+Evaluated across identical instances `[1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 17, 18, 19, 20, 24, 25]` from `metrics/optimization_benchmark_summary_common16.csv`:
+- **Stochastic MILP Dominance:** Mean modeled total cost of **$278,058.21** (99.13% fill rate, 937.9 unmet units).
+- **Stochastic MILP vs. Deterministic MILP:** Paired cost reduction of **-$170,401.26** (-38.0%, 95% Bootstrap CI: [-$214,750.91, -$126,974.56], $p < 0.0001$).
+- **Stochastic MILP vs. Greedy:** Paired cost reduction of **-$180,615.30** (-39.4%, 95% Bootstrap CI: [-$225,539.66, -$136,957.93], $p < 0.0001$).
+- **Stochastic MILP vs. Proportional:** Paired cost reduction of **-$189,585.05** (-40.5%, 95% Bootstrap CI: [-$233,992.00, -$145,880.54], $p < 0.0001$).
+- **Cost Distinction:** Modeled total cost includes clinical shadow shortage penalties ($150–$450/unit) reflecting triage severity; actual physical cash freight spend is $33k–$45k. Stochastic MILP spends ~$6.8k–$10.8k more in active freight to prevent over $180k in catastrophic shortage penalties.
 
 ---
 

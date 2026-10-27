@@ -34,7 +34,7 @@
 
 | Verification Suite | Target | Actual Measured Result | Status |
 | :--- | :--- | :--- | :---: |
-| **Total Test Count** | $\ge 70$ tests | **78 Passing Tests** | **PASS** |
+| **Total Test Count** | $\ge 70$ tests | **79 Passing Tests** | **PASS** |
 | **Milestone 1 Tests** | 35 tests | 35 passed | **PASS** |
 | **Milestone 2 Tests** | 21 tests | 21 passed | **PASS** |
 | **M2 Audit Tests** | 6 tests | 6 passed | **PASS** |

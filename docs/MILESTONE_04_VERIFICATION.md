@@ -3,7 +3,7 @@
 **Mission:** Final Product, GenAI, Deployment, Presentation and Submission  
 **Lead Roles:** Principal Release Engineer, Responsible AI Architect, Data Scientist, Hackathon Submission Lead  
 **Audit Date:** 2026-10-27  
-**Verdict:** **PASS** (100% Quality Gates Satisfied, 78/78 Passing Tests)
+**Verdict:** **PASS** (100% Quality Gates Satisfied, 79/79 Passing Tests)
 
 ---
 
@@ -25,8 +25,8 @@ Every metric, chart, and allocation decision has been verified on the codebase. 
 | **QG 4.4: 10-Slide Deck** | Editable 10-slide PowerPoint presentation with brand design and embedded screenshots | [`presentation/AEGIS_DATANOVA_2026.pptx`](file:///E:/Projects/aegis/presentation/AEGIS_DATANOVA_2026.pptx), [`tests/test_presentation.py`](file:///E:/Projects/aegis/tests/test_presentation.py) | **PASS** |
 | **QG 4.5: Cloud Deployment** | Root `app.py`, `requirements.txt`, `.streamlit/config.toml`, portable relative paths, Linux compatibility | [`app.py`](file:///E:/Projects/aegis/app.py), [`requirements.txt`](file:///E:/Projects/aegis/requirements.txt), [`docs/DEPLOYMENT.md`](file:///E:/Projects/aegis/docs/DEPLOYMENT.md) | **PASS** |
 | **QG 4.6: Release Audit** | Preserved audited benchmark ($N=30$) and common-feasible subset ($N=16$); verified no leakage | [`docs/RELEASE_EVIDENCE.md`](file:///E:/Projects/aegis/docs/RELEASE_EVIDENCE.md) | **PASS** |
-| **QG 4.7: Automated Tests** | 78 unit, integration, UI, and presentation tests pass deterministically | `uv run pytest -v` (78 passed in 44.82s) | **PASS** |
-| **QG 4.8: Code Standards** | Ruff linting and formatting pass with 0 errors across 64 files | `uv run ruff check .`<br>`uv run ruff format --check .` | **PASS** |
+| **QG 4.7: Automated Tests** | 79 unit, integration, UI, and presentation tests pass deterministically | `uv run pytest -v` (79 passed in 69.97s) | **PASS** |
+| **QG 4.8: Code Standards** | Ruff linting and formatting pass with 0 errors across 77 files | `uv run ruff check .`<br>`uv run ruff format --check .` | **PASS** |
 | **QG 4.9: Secret Security** | Zero committed API keys, secrets, or PHI/PII in Git tracking | Clean `.gitignore`, `.streamlit/secrets.toml.example` | **PASS** |
 
 ---
@@ -52,7 +52,7 @@ Chrome DevTools Protocol (CDP) was driven headlessly over WebSocket by [`scripts
 The presentation deck was programmatically compiled at [`presentation/AEGIS_DATANOVA_2026.pptx`](file:///E:/Projects/aegis/presentation/AEGIS_DATANOVA_2026.pptx) using `python-pptx`:
 - **Design:** Custom 16:9 widescreen layout with healthcare brand palette (#F8FAFC, #172B46, #2367A3, #378D73).
 - **Embedded Imagery:** Slide 8 contains actual embedded PNG screenshots captured from the live application.
-- **Factual Precision:** All statistics (e.g. 14.62% WAPE, 19.1% cost reduction, 78 passing tests) are verified against the repository metrics.
+- **Factual Precision:** All statistics (e.g. 14.62% WAPE, 38%–40% cost reduction, 79 passing tests) are verified against the repository metrics.
 
 ### 3.4 Streamlit Cloud Deployment Packaging
 - **Entrypoint:** Root [`app.py`](file:///E:/Projects/aegis/app.py) wrapping the UI with portable path resolution.
@@ -64,7 +64,7 @@ The presentation deck was programmatically compiled at [`presentation/AEGIS_DATA
 
 ## 4. Test Suite Breakdown by Milestone
 
-The AEGIS test suite contains **78 automated tests** passing with zero failures:
+The AEGIS test suite contains **79 automated tests** passing with zero failures:
 - **Milestone 1 (Forecasting & Data Engineering):** 35 tests (`test_baselines.py`, `test_features.py`, `test_generator.py`, `test_leakage.py`, `test_metrics.py`, `test_missing_data.py`, `test_models.py`, `test_provenance.py`, `test_schema.py`, `test_serialization.py`).
 - **Milestone 2 (Operations Research Engine):** 21 tests (`test_fairness.py`, `test_network.py`, `test_optimization.py`, `test_scenarios.py`).
 - **Milestone 2 Audit & Repair (Regression):** 6 tests (`test_benchmark_audit.py`).

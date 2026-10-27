@@ -310,7 +310,7 @@ A 10-slide widescreen presentation deck is generated at [`presentation/AEGIS_DAT
 ### 10.5 Complete PowerShell Run Commands for Milestone 4
 
 ```powershell
-# 1. Run the entire AEGIS test suite (78 passing tests across M1, M2, M3, and M4)
+# 1. Run the entire AEGIS test suite (79 passing tests across M1, M2, M3, and M4)
 uv run pytest -v
 
 # 2. Run the specialized GenAI and Presentation tests
