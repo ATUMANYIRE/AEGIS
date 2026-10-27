@@ -4,8 +4,11 @@ Streamlit application orchestrating multi-echelon demand forecasting,
 TreeSHAP explainability, and uncertainty-aware supply allocation MILP optimization.
 """
 
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
+from PIL import Image
 
 from aegis.config import HOSPITALS, PRODUCT_CATEGORIES, WAREHOUSES
 from aegis.explainability.decision_explainer import (
@@ -44,9 +47,13 @@ from aegis.ui.state import (
 from aegis.ui.theme import apply_custom_css
 
 # Page Configuration
+try:
+    _ICON = Image.open(Path(__file__).resolve().parents[3] / "assets" / "aegis_icon.png")
+except Exception:
+    _ICON = "🛡️"
 st.set_page_config(
     page_title="AEGIS Decision Intelligence Workspace",
-    page_icon="⚖️",
+    page_icon=_ICON,
     layout="wide",
     initial_sidebar_state="expanded",
 )

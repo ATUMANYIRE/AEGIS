@@ -56,7 +56,8 @@ def apply_custom_css() -> None:
 
     /* Product header */
     .aegis-header {{ display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: {NAV_COLOR}; border-radius: 12px; padding: 14px 20px; margin-bottom: 16px; }}
-    .aegis-logo {{ background: {ACCENT_PRIMARY}; color: #fff; width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }}
+    .aegis-brand-lockup {{ display: flex; align-items: center; gap: 10px; }}
+    .aegis-logo {{ width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }}
     .aegis-title-block {{ flex: 1 1 320px; min-width: 0; }}
     .aegis-title {{ font-family: {FONT_HEAD}; font-size: 1.35rem; font-weight: 600; color: #FFFFFF; line-height: 1.25; }}
     .aegis-subtitle {{ font-size: 0.8rem; color: {TEAL_TINT}; }}
@@ -73,9 +74,10 @@ def apply_custom_css() -> None:
 
     /* Cards */
     .aegis-card {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-radius: 10px; padding: 18px; margin-bottom: 16px; }}
-    div[data-testid="stMetric"] {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-top: 3px solid {ACCENT_PRIMARY}; border-radius: 10px; padding: 12px 14px; min-width: 0; }}
+    div[data-testid="stMetric"] {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-top: 3px solid {ACCENT_PRIMARY}; border-radius: 10px; padding: 12px 14px; min-width: 0; min-height: 112px; height: 100%; box-sizing: border-box; }}
+    section[data-testid="stSidebar"] code {{ background: #22323F; color: {TEAL_TINT}; padding: 1px 5px; border-radius: 4px; }}
     div[data-testid="stMetric"] label, div[data-testid="stMetric"] label p {{ color: {TEXT_MUTED} !important; font-size: 0.72rem !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.05em; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.25; }}
-    div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] div {{ color: {TEXT_PRIMARY} !important; font-family: {FONT_HEAD}; font-weight: 600 !important; font-size: 1.5rem; font-variant-numeric: tabular-nums; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }}
+    div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] div {{ color: {TEXT_PRIMARY} !important; font-family: {FONT_HEAD}; font-weight: 600 !important; font-size: clamp(1.05rem, 1.7vw, 1.35rem); font-variant-numeric: tabular-nums; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }}
     div[data-testid="stMetricDelta"] {{ font-size: 0.78rem; white-space: normal !important; }}
 
     /* Controls */

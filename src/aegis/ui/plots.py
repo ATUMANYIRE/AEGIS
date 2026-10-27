@@ -28,7 +28,7 @@ BASE_LAYOUT = {
         "family": FONT_UI,
         "size": 12,
     },
-    "margin": {"l": 56, "r": 24, "t": 56, "b": 110},
+    "margin": {"l": 56, "r": 24, "t": 56, "b": 150},
     "autosize": True,
     "xaxis": {"showgrid": True, "gridcolor": BORDER_COLOR, "zeroline": False},
     "yaxis": {"showgrid": True, "gridcolor": BORDER_COLOR, "zeroline": False},
@@ -132,10 +132,10 @@ def plot_facility_map(
 
     layout = BASE_LAYOUT.copy()
     layout.update(
-        title="<b>Simulated Regional Healthcare Logistics Network</b> (20 Hospitals · 3 Warehouses)",
+        title="<b>Facility network</b> · 20 hospitals, 3 depots",
         xaxis_title="East-West Grid Distance (km)",
         yaxis_title="North-South Grid Distance (km)",
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.34, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": -0.2, "xanchor": "center", "x": 0.5},
         height=520,
     )
     fig.update_layout(layout)
@@ -211,10 +211,10 @@ def plot_forecast_timeseries(
 
     layout = BASE_LAYOUT.copy()
     layout.update(
-        title=f"<b>Demand Trajectory & Forecast Horizon</b> · {facility_id} ({category_id})",
-        xaxis_title="Calendar Date",
+        title=f"<b>Demand forecast</b> · {facility_id} ({category_id})",
+        xaxis_title=None,
         yaxis_title="Consumable Demand (Units)",
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.34, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": -0.28, "xanchor": "center", "x": 0.5},
         height=380,
     )
     fig.update_layout(layout)
@@ -458,7 +458,7 @@ def plot_policy_benchmark_comparison(summary_df: pd.DataFrame | None = None) -> 
             "overlaying": "y",
             "showgrid": False,
         },
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.34, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": -0.3, "xanchor": "center", "x": 0.5},
         barmode="group",
         height=400,
     )

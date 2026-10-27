@@ -34,7 +34,7 @@ def render_header() -> None:
     st.markdown(
         """
         <div class="aegis-header">
-            <div class="aegis-logo">&#9878;</div>
+            <div class="aegis-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="40" height="40" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M11 26h7l3-8 5 14 3.5-9H37" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="23" r="2.2" fill="#D8A15B"/></svg></div>
             <div class="aegis-title-block">
                 <div class="aegis-title">AEGIS Decision Intelligence Workspace</div>
                 <div class="aegis-subtitle">Adaptive Emergency Governance &amp; Intelligent Supply &middot; Multi-echelon forecasting, optimization and explainability</div>
@@ -55,7 +55,7 @@ def render_provenance_sidebar(metadata: dict[str, Any] | None = None) -> None:
     st.sidebar.markdown(
         f"""
         <div class="aegis-brand">
-            <div class="aegis-brand-name">AEGIS</div>
+            <div class="aegis-brand-lockup"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="34" height="34" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M11 26h7l3-8 5 14 3.5-9H37" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="23" r="2.2" fill="#D8A15B"/></svg><div class="aegis-brand-name">AEGIS</div></div>
             <div class="aegis-brand-sub">DATANOVA 2026 &middot; Decision workspace</div>
             <div style="margin-top: 4px; font-size: 0.72rem; color: #5B6B75;">
                 Build: <code>{commit}</code> &middot; 86 Tests Passing

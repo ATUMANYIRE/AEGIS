@@ -42,3 +42,10 @@ git push origin master   # only after browser verification
 - To investigate (checkpoint 2): fill rate >100% / allocated > displayed demand. Likely allocation is against point forecast vs realized/scenario demand; check `aegis.optimization` fairness fill-rate definition before changing any display.
 - Not pushed. Live site not verified.
 - Resume: `git status`; run `.venv/Scripts/python.exe -m streamlit run app.py`, screenshot all tabs at 3 viewports, then start CP2 in src/aegis/ui/app.py (Overview block ~lines 82-370).
+
+## Update: logo + live push
+- New shield-and-pulse SVG logo (header + sidebar) and favicon `assets/aegis_icon.png`; KPI value sizing fixed; chart titles shortened; legends moved below axis titles (verified in a real browser on localhost Overview at ~1310px width only).
+- Full pytest passed, ruff clean, AppTest no exceptions. Pushed to origin/master.
+- Still unverified: Scenario Lab / Explainability / Stress / Governance visuals, mobile 390px, live site workflows.
+- Open question: Overview shows shipped 23,002 > forecast 18,129 units (fill 100%, stock ratio 126.9%): optimizer ships all stock; check whether this is intended before changing anything.
+- Remaining: CP3-CP6 tab redesigns, CP7 cross-device QA.
