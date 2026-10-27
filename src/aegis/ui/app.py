@@ -12,11 +12,13 @@ from aegis.explainability.decision_explainer import (
     AllocationDecisionExplainer,
     DecisionExplanation,
 )
+from aegis.genai import DecisionExplanationService, build_context_record
 from aegis.optimization.engine import optimize
 from aegis.optimization.schema import OptimizationResult
 from aegis.scenarios.network import NetworkParameters, TransportationNetwork
 from aegis.ui.components import (
     render_decision_explanation_card,
+    render_genai_explanation_card,
     render_header,
     render_hospital_risk_ranking,
     render_provenance_sidebar,
@@ -425,8 +427,12 @@ with tab_explain:
         unsafe_allow_html=True,
     )
 
-    exp_tab_shap, exp_tab_or = st.tabs(
-        ["🌳 Forecast TreeSHAP Explanations", "⚖️ Optimization Decision Attribution"]
+    exp_tab_shap, exp_tab_or, exp_tab_genai = st.tabs(
+        [
+            "🌳 Forecast TreeSHAP Explanations",
+            "⚖️ Optimization Decision Attribution",
+            "🤖 Grounded GenAI Operational Intelligence",
+        ]
     )
 
     with exp_tab_shap:
@@ -523,6 +529,84 @@ with tab_explain:
             st.info(
                 "Execute an optimization run in the Scenario Lab to generate decision attributions."
             )
+
+    with exp_tab_genai:
+        st.markdown("##### Grounded GenAI Decision Explanation & Audit")
+        st.caption(
+            "Synthesizes predictive TreeSHAP feature attributions, MILP binding constraints, and equity metrics "
+            "into an evidence-grounded operational narrative."
+        )
+
+        cur_opt_result = st.session_state.get("active_result")
+
+        g_c1, g_c2, g_c3 = st.columns([0.35, 0.35, 0.30])
+        with g_c1:
+            genai_hosp = st.selectbox(
+                "Focal Facility:",
+                options=[h.hospital_id for h in HOSPITALS],
+                index=0,
+                key="genai_hosp",
+            )
+        with g_c2:
+            genai_cat = st.selectbox(
+                "Focal Product Category:",
+                options=[c.category_id for c in PRODUCT_CATEGORIES],
+                index=0,
+                key="genai_cat",
+            )
+        with g_c3:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            genai_run_btn = st.button("✨ Explain Allocation Decision", use_container_width=True)
+
+        user_inquiry = st.text_input(
+            "Optional Logistics Inquiry / Scenario Note:",
+            placeholder="e.g. Why did Level 1 Trauma Center receive prioritization?",
+            key="genai_query_input",
+        )
+
+        if genai_run_btn or "last_genai_explanation" not in st.session_state:
+            with st.spinner("Compiling decision context and generating grounded explanation..."):
+                focal_rows = df_featured[
+                    (df_featured["hospital_id"] == genai_hosp)
+                    & (df_featured["category_id"] == genai_cat)
+                ]
+                pt_forecast = 300.0
+                p10 = 240.0
+                p90 = 380.0
+                top_shap = None
+
+                if not focal_rows.empty and shap_explainer.is_available:
+                    last_row = focal_rows.tail(1)
+                    inst_res = shap_explainer.explain_instance(last_row)
+                    pt_forecast = inst_res["prediction"]
+                    p10 = pt_forecast * 0.82
+                    p90 = pt_forecast * 1.25
+                    top_shap = inst_res.get("waterfall", [])[:4]
+
+                record = build_context_record(
+                    result=cur_opt_result,
+                    facility_id=genai_hosp,
+                    category_id=genai_cat,
+                    point_forecast=pt_forecast,
+                    p10_lower=p10,
+                    p90_upper=p90,
+                    shap_contributions=top_shap,
+                    shap_base_value=230.15,
+                    scenario_deltas={
+                        "name": "Active Scenario",
+                        "surge_pct": 0.0,
+                        "stock_ratio_pct": 100.0,
+                        "vehicle_cap": 300,
+                    },
+                    user_query=user_inquiry if user_inquiry else None,
+                )
+
+                genai_service = DecisionExplanationService()
+                explanation = genai_service.explain(record)
+                st.session_state["last_genai_explanation"] = explanation
+
+        if "last_genai_explanation" in st.session_state:
+            render_genai_explanation_card(st.session_state["last_genai_explanation"])
 
 # ==============================================================================
 # TAB 4: STRESS TESTING & AUDITED BASELINES

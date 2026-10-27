@@ -22,6 +22,8 @@ dependencies = [
     "plotly>=5.18.0",
     "streamlit>=1.66.1",
     "shap>=0.51.0",
+    "python-pptx>=1.0.2",
+    "selenium>=4.51.0",
 ]
 
 [project.optional-dependencies]

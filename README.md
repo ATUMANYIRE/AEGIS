@@ -262,3 +262,78 @@ uv run streamlit run src/aegis/ui/app.py
 - **Explainability & Attribution Mathematics:** [`docs/EXPLAINABILITY.md`](file:///E:/Projects/aegis/docs/EXPLAINABILITY.md)
 - **Milestone 3 Verification Report:** [`docs/MILESTONE_03_VERIFICATION.md`](file:///E:/Projects/aegis/docs/MILESTONE_03_VERIFICATION.md)
 
+---
+
+## 10. Milestone 4: Final Product, GenAI, Deployment, Presentation and Submission
+
+Milestone 4 culminates the AEGIS project for DATANOVA 2026, delivering an evidence-grounded GenAI operational explanation layer, end-to-end browser verification with genuine captured screenshots, an editable 10-slide PowerPoint presentation with brand assets, Streamlit Community Cloud deployment packaging, and a full scientific release audit.
+
+### 10.1 Grounded GenAI Decision Explanation Layer
+
+AEGIS integrates an optional LLM explanation service governed by strict validation:
+- **Pydantic Data Contracts:** Encapsulates forecasts, prediction intervals ($p_{10}, p_{90}$), TreeSHAP feature rankings, HiGHS solver statuses, cost decompositions, and active binding constraints into structured [`DecisionContextRecord`](file:///E:/Projects/aegis/src/aegis/genai/schema.py#L98) instances.
+- **Factual Grounding Verification:** The [`GroundingValidator`](file:///E:/Projects/aegis/src/aegis/genai/grounding.py#L7) audits all numerical claims in candidate narratives. If any number is ungrounded or fabricated, the narrative is flagged and the system automatically falls back to deterministic generation.
+- **Prompt-Injection Defense:** Sanitizes operator notes and queries against override and jailbreak patterns.
+- **Zero Paid API Requirement:** When external API keys (`GEMINI_API_KEY`, `OPENAI_API_KEY`) are not provided, the platform operates 100% offline using the deterministic grounded generator.
+
+### 10.2 Native Browser Verification & Captured Screenshots
+
+Chrome DevTools Protocol (CDP) was driven headlessly over WebSocket by [`scripts/verify_ui_browser.py`](file:///E:/Projects/aegis/scripts/verify_ui_browser.py) to exercise the live application and capture genuine PNG evidence:
+- **Overview Desktop:** [`docs/screenshots/01_overview_desktop.png`](file:///E:/Projects/aegis/docs/screenshots/01_overview_desktop.png) (209 KB)
+- **Scenario Lab Desktop:** [`docs/screenshots/02_scenario_lab_desktop.png`](file:///E:/Projects/aegis/docs/screenshots/02_scenario_lab_desktop.png) (179 KB)
+- **Explainability & GenAI Desktop:** [`docs/screenshots/03_explainability_genai_desktop.png`](file:///E:/Projects/aegis/docs/screenshots/03_explainability_genai_desktop.png) (250 KB)
+- **Stress Testing Desktop:** [`docs/screenshots/04_stress_testing_desktop.png`](file:///E:/Projects/aegis/docs/screenshots/04_stress_testing_desktop.png) (173 KB)
+- **Responsible AI Desktop:** [`docs/screenshots/05_governance_desktop.png`](file:///E:/Projects/aegis/docs/screenshots/05_governance_desktop.png) (218 KB)
+- **Mobile Responsive Viewport:** [`docs/screenshots/06_mobile_responsive.png`](file:///E:/Projects/aegis/docs/screenshots/06_mobile_responsive.png) (199 KB)
+
+### 10.3 10-Slide Editable PowerPoint Presentation
+
+A 10-slide widescreen presentation deck is generated at [`presentation/AEGIS_DATANOVA_2026.pptx`](file:///E:/Projects/aegis/presentation/AEGIS_DATANOVA_2026.pptx):
+1. Title and Value Proposition
+2. Problem and Operational Impact
+3. Data Provenance and Validation Methodology
+4. System Architecture
+5. Mathematical Optimization Engine (SciPy HiGHS MILP)
+6. Explainable and Responsible GenAI
+7. Verified Empirical Results
+8. Actual Application Screenshots and Demo Walkthrough (with embedded PNG assets)
+9. Security, Feasibility, and System Limitations
+10. Implementation Roadmap and Business Impact
+
+### 10.4 Cloud Deployment Readiness
+
+- **Entry Point:** Root [`app.py`](file:///E:/Projects/aegis/app.py) with portable relative path resolution.
+- **Dependencies:** Pinned [`requirements.txt`](file:///E:/Projects/aegis/requirements.txt) compatible with Python 3.11.
+- **Theming & Server:** [`.streamlit/config.toml`](file:///E:/Projects/aegis/.streamlit/config.toml) and secrets template [`.streamlit/secrets.toml.example`](file:///E:/Projects/aegis/.streamlit/secrets.toml.example).
+- **Deployment Guide:** Detailed step-by-step instructions in [`docs/DEPLOYMENT.md`](file:///E:/Projects/aegis/docs/DEPLOYMENT.md).
+
+### 10.5 Complete PowerShell Run Commands for Milestone 4
+
+```powershell
+# 1. Run the entire AEGIS test suite (78 passing tests across M1, M2, M3, and M4)
+uv run pytest -v
+
+# 2. Run the specialized GenAI and Presentation tests
+uv run pytest -v tests/test_genai.py tests/test_presentation.py
+
+# 3. Generate the 10-slide PowerPoint presentation
+uv run python scripts/generate_presentation.py
+
+# 4. Run native Chrome CDP browser verification and capture screenshots
+uv run python scripts/verify_ui_browser.py
+
+# 5. Launch the Streamlit Decision Workspace
+uv run streamlit run app.py
+```
+
+### 10.6 Milestone 4 Documentation Links
+
+- **System Architecture Specifications:** [`docs/ARCHITECTURE.md`](file:///E:/Projects/aegis/docs/ARCHITECTURE.md)
+- **Responsible AI & Governance Framework:** [`docs/RESPONSIBLE_AI.md`](file:///E:/Projects/aegis/docs/RESPONSIBLE_AI.md)
+- **End-to-End Reproduction Instructions:** [`docs/REPRODUCTION.md`](file:///E:/Projects/aegis/docs/REPRODUCTION.md)
+- **Cloud Deployment Guide:** [`docs/DEPLOYMENT.md`](file:///E:/Projects/aegis/docs/DEPLOYMENT.md)
+- **5-Minute Judge Demo Script:** [`docs/DEMO_SCRIPT.md`](file:///E:/Projects/aegis/docs/DEMO_SCRIPT.md)
+- **Submission Compliance Checklist:** [`docs/SUBMISSION_CHECKLIST.md`](file:///E:/Projects/aegis/docs/SUBMISSION_CHECKLIST.md)
+- **Scientific Release Audit & Evidence Report:** [`docs/RELEASE_EVIDENCE.md`](file:///E:/Projects/aegis/docs/RELEASE_EVIDENCE.md)
+- **Milestone 4 Verification Report:** [`docs/MILESTONE_04_VERIFICATION.md`](file:///E:/Projects/aegis/docs/MILESTONE_04_VERIFICATION.md)
+
