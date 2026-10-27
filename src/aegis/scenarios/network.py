@@ -12,6 +12,14 @@ class Coordinate:
     x_km: float
     y_km: float
 
+    @property
+    def x(self) -> float:
+        return self.x_km
+
+    @property
+    def y(self) -> float:
+        return self.y_km
+
 
 @dataclass(frozen=True)
 class NetworkParameters:
@@ -74,6 +82,11 @@ class TransportationNetwork:
         self.transport_costs = self._compute_transport_costs()
         self.fixed_route_costs = self._compute_fixed_route_costs()
         self.shortage_penalties = self._compute_shortage_penalties()
+
+    @property
+    def coordinates(self) -> dict[str, Coordinate]:
+        """Combined spatial coordinates for all warehouses and hospitals."""
+        return {**self.warehouse_coords, **self.hospital_coords}
 
     def _build_warehouse_coordinates(self) -> dict[str, Coordinate]:
         """Establish spatial coordinates for the 3 fulfillment hubs."""

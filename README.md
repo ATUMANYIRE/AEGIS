@@ -197,3 +197,68 @@ All benchmark tables, sample sizes, and paired differences have been audited and
   - Route activation consistency: shipments only flow on activated routes ($x > 0 \implies y = 1$)
   - Vehicle capacity adherence: $\sum_c x \le Q_{\text{veh}} \cdot v$
   - Strict minimum service coverage: $\sum_w x \ge \alpha_{\min} d$ when required.
+
+---
+
+## 9. Milestone 3: Premium Decision Workspace and Explainability
+
+Milestone 3 delivers an enterprise decision workspace built in Streamlit and Plotly, directly powered by the Milestone 1 forecasting models and the Milestone 2 multi-echelon optimization engine.
+
+### 9.1 Design System & Visual Hierarchy
+
+The workspace adopts a clean, high-contrast healthcare operations palette:
+- **Background (`#F8FAFC`):** Soft slate canvas minimizing visual fatigue.
+- **Card Surface (`#FFFFFF`):** Crisp containers with subtle elevation for tabular and metric views.
+- **Primary Typography (`#172B46`):** High-contrast deep navy text adhering to WCAG AAA standards.
+- **Primary Accent (`#2367A3`):** Steel blue for key operational metrics, logistics arcs, and warehouse nodes.
+- **Clinical Accent (`#378D73`):** Clinical sage designating high fill rates and trauma center priorities.
+- **Warning Accent (`#C78B31`):** Amber ocre flagging supply deficits, solver infeasibilities, and equity relaxations.
+
+### 9.2 Five Interactive Workspace Tabs
+
+1. **Overview Tab:**
+   - Real-time KPIs: Network Forecast Demand, Total Warehouse Inventory, Projected Shortage Risk, Target Service Coverage.
+   - Interactive 2D Cartesian Facility Map (20 hospitals color-coded by clinical tier, 3 fulfillment warehouses, and candidate logistics arcs).
+   - Uncertainty-aware demand forecast time series with 80% prediction intervals ($p_{10}$ to $p_{90}$) from quantile GBDT regression.
+   - Hospital risk ranking table sorting facilities by bed capacity, clinical tier penalty, and consumption velocity.
+
+2. **Scenario Lab Tab:**
+   - Real-time operational controls: Demand Surge ($0-100\%$), Stock Availability ($20-150\%$), Vehicle Capacity ($100-500$), Transport Capacity Throttle ($20-100\%$), Minimum Service Coverage $\alpha_{\min}$ ($0-100\%$), and Shortage Penalty Weight ($0.5-5.0\times$).
+   - Policy Selector: Proportional Allocation, Demand-Priority Greedy, Deterministic MILP (SciPy HiGHS), and Two-Stage Stochastic MILP.
+   - Live solver execution with feasibility status, runtime, and optimality gap reporting.
+   - Cost decomposition waterfall chart (transport + route activation + vehicle trips + recourse penalties) and facility fill rate distributions.
+   - Automated infeasibility detection with [`FairnessRelaxationAnalyzer`](file:///E:/Projects/aegis/src/aegis/optimization/fairness.py) computing the maximum achievable coverage $\alpha_{\text{global}}^*$ and physical resource shortfalls.
+
+3. **Explainability Tab:**
+   - **Demand Forecasting Attribution (TreeSHAP):** Uses exact polynomial TreeSHAP (`shap.TreeExplainer`) on the fitted XGBoost regressor. Delivers global feature importance rankings and local waterfall decomposition satisfying the Efficiency Axiom:
+     $$\hat{y}(x) = \phi_0 + \sum_{i=1}^{39} \phi_i(x) \quad \text{with } |\hat{y} - (\phi_0 + \sum \phi_i)| < 10^{-4}$$
+   - **Operations Research Decision Attribution:** Distinct [`AllocationDecisionExplainer`](file:///E:/Projects/aegis/src/aegis/explainability/decision_explainer.py) explaining why shipments occurred, route activation economics, warehouse capacity saturation, and clinical tier prioritization during deficits.
+
+4. **Stress Testing Tab:**
+   - 7 pre-configured healthcare shock scenarios: 40% stock loss, 50% demand surge, route disruption, vehicle reduction, infeasible fairness target, missing artifact fallback, and solver timeout.
+   - Grounded benchmark comparison chart using audited results from [`metrics/optimization_benchmark_summary.csv`](file:///E:/Projects/aegis/metrics/optimization_benchmark_summary.csv).
+
+5. **Responsible AI & Governance Tab:**
+   - Synthetic data provenance notices and clinical non-validation disclaimers (zero patient-specific data or PHI/PII).
+   - Cryptographic SHA-256 hashes of dataset manifests and serialized model binaries.
+   - One-click session audit JSON export (`aegis_session_audit.json`) for regulatory transparency.
+
+### 9.3 PowerShell Execution Commands for Milestone 3
+
+```powershell
+# 1. Run the entire AEGIS test suite (73 passing tests across M1, M2, M2-Audit, and M3)
+uv run pytest -v
+
+# 2. Run the specialized UI and Explainability unit & integration tests
+uv run pytest -v tests/test_ui_and_explainability.py
+
+# 3. Launch the Streamlit Decision Workspace
+uv run streamlit run src/aegis/ui/app.py
+```
+
+### 9.4 Milestone 3 Documentation Links
+
+- **UI Architecture & Design System:** [`docs/UI_ARCHITECTURE.md`](file:///E:/Projects/aegis/docs/UI_ARCHITECTURE.md)
+- **Explainability & Attribution Mathematics:** [`docs/EXPLAINABILITY.md`](file:///E:/Projects/aegis/docs/EXPLAINABILITY.md)
+- **Milestone 3 Verification Report:** [`docs/MILESTONE_03_VERIFICATION.md`](file:///E:/Projects/aegis/docs/MILESTONE_03_VERIFICATION.md)
+
