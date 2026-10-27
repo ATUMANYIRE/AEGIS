@@ -177,8 +177,8 @@ AEGIS implements four distinct allocation policies evaluated on identical physic
 ### 8.4 PowerShell Execution Commands for Milestone 2
 
 ```powershell
-# Run the complete Milestone 2 optimization test suite (56 tests across M1 & M2)
-uv run pytest -v tests/test_optimization.py tests/test_baselines.py tests/test_fairness.py tests/test_network.py tests/test_scenarios.py
+# Run the complete test suite including operations research audit regression tests (62 tests across M1 & M2)
+uv run pytest -v
 
 # Execute the 30-instance scientific benchmark across 6 operational regimes
 uv run python scripts/run_optimization_benchmark.py --output-dir metrics --num-instances 30
@@ -186,12 +186,14 @@ uv run python scripts/run_optimization_benchmark.py --output-dir metrics --num-i
 
 ---
 
-### 8.5 Verification & Hard Constraint Auditing
+### 8.5 Operations Research Audit & Verification
 
-Every returned allocation undergoes independent verification by `TransportationNetwork.validate_allocation_feasibility`:
-- Zero warehouse inventory overdraw: $\sum_h x_{w,h,c} \le I_{w,c}$
-- Zero warehouse dispatch limit breach: $\sum_{h,c} x_{w,h,c} \le Cap_w$
-- Integrality verification: all shipment quantities $x \in \mathbb{Z}_{\ge 0}$ and vehicles $v \in \mathbb{Z}_{\ge 0}$
-- Route activation consistency: shipments only flow on activated routes ($x > 0 \implies y = 1$)
-- Vehicle capacity adherence: $\sum_c x \le Q_{\text{veh}} \cdot v$
-- Strict minimum service coverage: $\sum_w x \ge \alpha_{\min} d$ when required.
+All benchmark tables, sample sizes, and paired differences have been audited and verified in [`docs/MILESTONE_02_AUDIT.md`](file:///E:/Projects/aegis/docs/MILESTONE_02_AUDIT.md):
+- Strictly aligned pairwise comparisons: Deterministic MILP ($N=21$ opt / $N=25$ valid), Greedy ($N=20$), Proportional ($N=24$), Common 4-way subset ($N=16$).
+- Every returned allocation undergoes independent verification by `TransportationNetwork.validate_allocation_feasibility`:
+  - Zero warehouse inventory overdraw: $\sum_h x_{w,h,c} \le I_{w,c}$
+  - Zero warehouse dispatch limit breach: $\sum_{h,c} x_{w,h,c} \le Cap_w$
+  - Integrality verification: all shipment quantities $x \in \mathbb{Z}_{\ge 0}$ and vehicles $v \in \mathbb{Z}_{\ge 0}$
+  - Route activation consistency: shipments only flow on activated routes ($x > 0 \implies y = 1$)
+  - Vehicle capacity adherence: $\sum_c x \le Q_{\text{veh}} \cdot v$
+  - Strict minimum service coverage: $\sum_w x \ge \alpha_{\min} d$ when required.
