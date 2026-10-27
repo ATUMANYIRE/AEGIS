@@ -91,6 +91,19 @@ def apply_custom_css() -> None:
     div[data-testid="stPlotlyChart"] .js-plotly-plot, div[data-testid="stPlotlyChart"] .plot-container {{ overflow: hidden !important; }}
     div[data-testid="stExpander"] {{ border: 1px solid {BORDER_COLOR}; border-radius: 10px; background: {SURFACE_COLOR}; }}
 
+    /* Inline code: calm ink-on-sand instead of default red */
+    .stApp code, .stMarkdown code {{ background: {HOVER_COLOR}; color: {ACCENT_PRIMARY}; border-radius: 4px; padding: 1px 6px; font-size: 0.85em; }}
+    div[data-testid="stCode"] pre, .stCodeBlock pre {{ background: {SURFACE_SOFT}; border: 1px solid {BORDER_COLOR}; border-radius: 8px; }}
+
+    /* Tables */
+    .aegis-table-wrap {{ overflow-x: auto; overflow-y: auto; border: 1px solid {BORDER_COLOR}; border-radius: 10px; background: {SURFACE_COLOR}; margin: 6px 0 14px 0; }}
+    .aegis-table {{ width: 100%; border-collapse: collapse; font-size: 0.84rem; }}
+    .aegis-table th {{ position: sticky; top: 0; background: {NAV_COLOR}; color: #FFFFFF; text-align: left; font-weight: 600; font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 9px 12px; white-space: nowrap; }}
+    .aegis-table td {{ padding: 8px 12px; border-top: 1px solid {BORDER_COLOR}; color: {TEXT_PRIMARY}; vertical-align: top; }}
+    .aegis-table td.num {{ text-align: right; font-variant-numeric: tabular-nums; }}
+    .aegis-table tbody tr:nth-child(even) {{ background: {SURFACE_SOFT}; }}
+    .aegis-table tbody tr:hover {{ background: {HOVER_COLOR}; }}
+
     /* Tabs as primary navigation */
     .stTabs [data-baseweb="tab-list"] {{ gap: 2px; flex-wrap: wrap; border-bottom: 1px solid {BORDER_COLOR}; background: transparent; }}
     .stTabs [data-baseweb="tab"] {{ font-weight: 600; color: {TEXT_MUTED}; padding: 10px 16px; font-size: 0.92rem; border-radius: 8px 8px 0 0; }}

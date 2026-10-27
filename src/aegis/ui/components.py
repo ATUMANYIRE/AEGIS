@@ -34,7 +34,7 @@ def render_header() -> None:
     st.markdown(
         """
         <div class="aegis-header">
-            <div class="aegis-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="40" height="40" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M11 26h7l3-8 5 14 3.5-9H37" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="23" r="2.2" fill="#D8A15B"/></svg></div>
+            <div class="aegis-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="40" height="40" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M15.5 35 24 13.5 32.5 35" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.2 28h9.6" fill="none" stroke="#D8A15B" stroke-width="3" stroke-linecap="round"/></svg></div>
             <div class="aegis-title-block">
                 <div class="aegis-title">AEGIS Decision Intelligence Workspace</div>
                 <div class="aegis-subtitle">Adaptive Emergency Governance &amp; Intelligent Supply &middot; Multi-echelon forecasting, optimization and explainability</div>
@@ -55,7 +55,7 @@ def render_provenance_sidebar(metadata: dict[str, Any] | None = None) -> None:
     st.sidebar.markdown(
         f"""
         <div class="aegis-brand">
-            <div class="aegis-brand-lockup"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="34" height="34" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M11 26h7l3-8 5 14 3.5-9H37" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="23" r="2.2" fill="#D8A15B"/></svg><div class="aegis-brand-name">AEGIS</div></div>
+            <div class="aegis-brand-lockup"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="34" height="34" role="img" aria-label="AEGIS logo"><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23 10.5-3.5 18-12 18-23V10z" fill="#216C65"/><path d="M24 3 6 10v12c0 11 7.5 19.5 18 23z" fill="#1A5651"/><path d="M15.5 35 24 13.5 32.5 35" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.2 28h9.6" fill="none" stroke="#D8A15B" stroke-width="3" stroke-linecap="round"/></svg><div class="aegis-brand-name">AEGIS</div></div>
             <div class="aegis-brand-sub">DATANOVA 2026 &middot; Decision workspace</div>
             <div style="margin-top: 4px; font-size: 0.72rem; color: #5B6B75;">
                 Build: <code>{commit}</code> &middot; 86 Tests Passing
@@ -111,22 +111,14 @@ def render_hospital_risk_ranking(result: OptimizationResult) -> None:
 
     df_rank = df_rank.sort_values("Unmet Demand", ascending=False).reset_index(drop=True)
 
-    st.dataframe(
-        df_rank,
-        column_config={
-            "Facility ID": st.column_config.TextColumn(width="small"),
-            "Hospital": st.column_config.TextColumn(width="medium"),
-            "Tier": st.column_config.TextColumn(width="small"),
-            "Beds": st.column_config.NumberColumn(width="small"),
-            "Total Demand": st.column_config.NumberColumn(format="%.1f units"),
-            "Allocated": st.column_config.NumberColumn(format="%d units"),
-            "Unmet Demand": st.column_config.NumberColumn(format="%.1f units"),
-            "Fill Rate": st.column_config.TextColumn(width="small"),
-            "Penalty ($)": st.column_config.TextColumn(width="small"),
-        },
-        hide_index=True,
-        use_container_width=True,
+    df_rank = df_rank.rename(
+        columns={
+            "Total Demand": "Demand (units)",
+            "Allocated": "Allocated (units)",
+            "Unmet Demand": "Unmet (units)",
+        }
     )
+    render_table(df_rank, max_height=520)
 
 
 def render_decision_explanation_card(explanation: DecisionExplanation) -> None:
@@ -255,3 +247,29 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
             for uv in a.unverified_claims:
                 st.markdown(f"  - `{uv}`")
         st.info(f"**Governance Policy:** {genai_exp.clinical_disclaimer}")
+
+
+def render_table(df: pd.DataFrame, max_height: int | None = None) -> None:
+    """Render a DataFrame as a clean, readable HTML table (wraps text, no canvas scrolling)."""
+    import html
+
+    cols = list(df.columns)
+    head = "".join(f"<th>{html.escape(str(c))}</th>" for c in cols)
+    rows = []
+    for _, r in df.iterrows():
+        cells = []
+        for c in cols:
+            v = r[c]
+            num = isinstance(v, (int, float)) and not isinstance(v, bool)
+            if isinstance(v, float):
+                v = f"{v:,.2f}" if abs(v) < 1000 else f"{v:,.0f}"
+            elif isinstance(v, int) and not isinstance(v, bool):
+                v = f"{v:,}"
+            cells.append(f'<td class="{"num" if num else ""}">{html.escape(str(v))}</td>')
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    style = f' style="max-height:{max_height}px"' if max_height else ""
+    st.markdown(
+        f'<div class="aegis-table-wrap"{style}><table class="aegis-table">'
+        f"<thead><tr>{head}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>",
+        unsafe_allow_html=True,
+    )

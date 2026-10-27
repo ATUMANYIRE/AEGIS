@@ -30,8 +30,19 @@ BASE_LAYOUT = {
     },
     "margin": {"l": 56, "r": 24, "t": 56, "b": 150},
     "autosize": True,
-    "xaxis": {"showgrid": True, "gridcolor": BORDER_COLOR, "zeroline": False},
-    "yaxis": {"showgrid": True, "gridcolor": BORDER_COLOR, "zeroline": False},
+    "xaxis": {
+        "showgrid": False,
+        "zeroline": False,
+        "linecolor": BORDER_COLOR,
+        "ticks": "outside",
+        "tickcolor": BORDER_COLOR,
+    },
+    "yaxis": {
+        "showgrid": True,
+        "gridcolor": "#EEEBE2",
+        "zeroline": False,
+        "linecolor": "rgba(0,0,0,0)",
+    },
 }
 
 

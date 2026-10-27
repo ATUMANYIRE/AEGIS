@@ -26,6 +26,7 @@ from aegis.ui.components import (
     render_header,
     render_hospital_risk_ranking,
     render_provenance_sidebar,
+    render_table,
 )
 from aegis.ui.plots import (
     plot_cost_waterfall,
@@ -549,7 +550,7 @@ with tab_explain:
                             "Diagnostic Evidence": sa.evidence,
                         }
                     )
-                st.dataframe(pd.DataFrame(shortage_rows), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(shortage_rows))
             else:
                 st.success("Zero facility shortages recorded. All clinical demands fully met.")
 
@@ -772,14 +773,14 @@ with tab_stress:
     st.plotly_chart(plot_policy_benchmark_comparison(c16_df), use_container_width=True)
 
     if c16_df is not None:
-        st.dataframe(c16_df, hide_index=True, use_container_width=True)
+        render_table(c16_df)
 
     with st.expander(
         "🔬 View Audited Paired Confidence Intervals vs Stochastic MILP", expanded=False
     ):
         pairwise_df = benchmark_metrics.get("pairwise")
         if pairwise_df is not None:
-            st.dataframe(pairwise_df, hide_index=True, use_container_width=True)
+            render_table(pairwise_df)
 
 # ==============================================================================
 # TAB 5: RESPONSIBLE AI & GOVERNANCE
@@ -811,7 +812,7 @@ with tab_governance:
             - **Forecasting Model:** XGBoost Gradient Boosted Decision Trees (`models/xgboost_demand.joblib`)
             - **Quantile Loss Intervals:** 10th & 90th percentile bounds (`reg:quantileerror`)
             - **Optimization Solver:** SciPy HiGHS Dual Simplex / Branch-and-Cut
-            - **Audit Release:** `docs/FINAL_SUBMISSION_AUDIT.md` (Commit: `<code>{commit_hash}</code>`)
+            - **Audit Release:** `docs/FINAL_SUBMISSION_AUDIT.md` (Commit: `{commit_hash}`)
             """,
             unsafe_allow_html=True,
         )
