@@ -1,0 +1,7 @@
+{
+  "model_type": "MovingAverageForecaster",
+  "window": 7,
+  "train_records": 15600,
+  "model_name": "moving_average",
+  "artifact_file": "moving_average.joblib"
+}

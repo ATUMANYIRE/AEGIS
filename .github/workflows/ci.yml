@@ -1,0 +1,47 @@
+name: AEGIS CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Lint, Test & Validate (Python 3.11)
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: |
+          uv sync --frozen --dev
+
+      - name: Run Ruff Linter
+        run: |
+          uv run ruff check .
+
+      - name: Run Ruff Format Check
+        run: |
+          uv run ruff format --check .
+
+      - name: Run Pytest
+        run: |
+          uv run pytest --cov=aegis --cov-report=term-missing tests/
+
+      - name: Run Pipeline End-to-End
+        run: |
+          uv run python scripts/generate_data.py --seed 42 --days 365
+          uv run python scripts/train.py --config configs/train_config.json
+          uv run python scripts/evaluate.py --config configs/evaluate_config.json

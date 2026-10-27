@@ -1,0 +1,46 @@
+{
+  "Seasonal_Naive": {
+    "MAE": 112.9063,
+    "RMSE": 261.6373,
+    "WAPE": 0.3277,
+    "interval_coverage": 0.7927,
+    "mean_interval_width": 202.8482,
+    "median_interval_width": 214.7,
+    "pinball_loss_p10": 44.3987,
+    "pinball_loss_p90": 45.7868,
+    "pinball_loss_p50": 56.4532
+  },
+  "Moving_Average": {
+    "MAE": 94.6614,
+    "RMSE": 196.5316,
+    "WAPE": 0.2748,
+    "interval_coverage": 0.7937,
+    "mean_interval_width": 218.1535,
+    "median_interval_width": 234.6486,
+    "pinball_loss_p10": 30.9477,
+    "pinball_loss_p90": 35.1206,
+    "pinball_loss_p50": 47.3307
+  },
+  "Ridge_Regression": {
+    "MAE": 67.4103,
+    "RMSE": 143.6161,
+    "WAPE": 0.1957,
+    "interval_coverage": 0.8,
+    "mean_interval_width": 137.6042,
+    "median_interval_width": 143.635,
+    "pinball_loss_p10": 16.9596,
+    "pinball_loss_p90": 25.7529,
+    "pinball_loss_p50": 33.7051
+  },
+  "XGBoost": {
+    "MAE": 52.3788,
+    "RMSE": 130.2032,
+    "WAPE": 0.152,
+    "interval_coverage": 0.847,
+    "mean_interval_width": 184.5991,
+    "median_interval_width": 85.3826,
+    "pinball_loss_p10": 12.4996,
+    "pinball_loss_p90": 17.3321,
+    "pinball_loss_p50": 26.1894
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "model_type": "RegularizedRegressionForecaster",
+  "best_alpha": 10.0,
+  "train_records": 15600,
+  "model_name": "ridge_regression",
+  "artifact_file": "ridge_regression.joblib"
+}

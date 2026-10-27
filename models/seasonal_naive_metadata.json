@@ -1,0 +1,7 @@
+{
+  "model_type": "SeasonalNaiveForecaster",
+  "season_length": 7,
+  "train_records": 15600,
+  "model_name": "seasonal_naive",
+  "artifact_file": "seasonal_naive.joblib"
+}

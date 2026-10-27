@@ -1,0 +1,46 @@
+{
+  "dataset_name": "aegis_featured_consumables_processed",
+  "version": "1.0.0",
+  "created_at_utc": "2026-10-27T06:10:10.942257+00:00",
+  "seed": 42,
+  "row_count": 21900,
+  "date_range": [
+    "2025-01-01",
+    "2025-12-31"
+  ],
+  "file_sha256": "7c63b0f7aee3dc3cfd0581fd40cb212d543fb599a6d6744533937b4896d11072",
+  "hospitals": [
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06",
+    "H07",
+    "H08",
+    "H09",
+    "H10",
+    "H11",
+    "H12",
+    "H13",
+    "H14",
+    "H15",
+    "H16",
+    "H17",
+    "H18",
+    "H19",
+    "H20"
+  ],
+  "warehouses": [
+    "W01",
+    "W02",
+    "W03"
+  ],
+  "categories": [
+    "PPE",
+    "Sanitation",
+    "Medical_Utility"
+  ],
+  "is_synthetic": true,
+  "provenance_statement": "AEGIS Milestone 1 strictly operates on a deterministic, parameterized synthetic medical supply chain benchmark. No external private health records or unverified public datasets have been integrated or claimed. The synthetic generator models structural dynamics (seasonality, facility tiers, lead times, surges, and stockouts) for algorithmic validation without fabricated claims of real-world clinical effectiveness."
+}

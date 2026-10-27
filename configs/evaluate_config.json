@@ -1,0 +1,7 @@
+{
+  "data": "data/processed/featured_dataset.parquet",
+  "train_end_date": "2025-09-17",
+  "val_end_date": "2025-11-06",
+  "models_dir": "models",
+  "metrics_dir": "metrics"
+}
