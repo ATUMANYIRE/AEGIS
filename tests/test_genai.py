@@ -193,3 +193,79 @@ def test_build_context_record_from_real_optimization():
     service = DecisionExplanationService()
     exp = service.explain(record)
     assert exp.grounding_audit.is_grounded
+
+
+def test_build_context_record_none_result_graceful_fallback():
+    """Verify build_context_record safely handles NoneType result without AttributeError."""
+    record = build_context_record(
+        result=None,
+        facility_id="H01",
+        category_id="PPE",
+        point_forecast=280.0,
+        p10_lower=220.0,
+        p90_upper=340.0,
+    )
+
+    assert record is not None
+    assert record.forecast.facility_id == "H01"
+    assert record.optimization.facility_allocated_units == 0
+    assert record.optimization.facility_fill_rate_pct == 0.0
+    assert record.optimization.total_cost == 0.0
+    assert record.fairness.mean_fill_rate_pct == 0.0
+
+    # Ensure explanation service generates a valid, grounded fallback explanation
+    service = DecisionExplanationService()
+    explanation = service.explain(record)
+    assert explanation is not None
+    assert explanation.executive_summary
+    assert explanation.grounding_audit.is_grounded
+
+
+def test_build_context_record_infeasible_nan_costs_safe():
+    """Verify build_context_record sanitizes NaN / inf cost fields from infeasible runs."""
+    from aegis.optimization.schema import FairnessDiagnostics, OptimizationResult
+
+    infeasible_res = OptimizationResult(
+        policy="Stochastic_MILP",
+        status="INFEASIBLE",
+        solver_name="HiGHS",
+        total_cost=float("nan"),
+        transportation_cost=0.0,
+        fixed_route_cost=0.0,
+        vehicle_cost=0.0,
+        shortage_penalty=0.0,
+        total_units_shipped=0,
+        total_unmet_demand=15000.0,
+        allocations=[],
+        routes=[],
+        shortages=[],
+        fairness=FairnessDiagnostics(
+            worst_facility_fill_rate=0.0,
+            mean_facility_fill_rate=0.0,
+            coverage_disparity=0.0,
+            configured_min_coverage=0.95,
+            is_fairness_satisfied=False,
+            max_feasible_coverage=0.45,
+            relaxation_summary="Target coverage 95.0% exceeds max feasible coverage 45.0%",
+        ),
+        solver_runtime_sec=0.12,
+    )
+
+    record = build_context_record(
+        result=infeasible_res,
+        facility_id="H02",
+        category_id="SANITATION",
+        point_forecast=150.0,
+    )
+
+    assert record is not None
+    assert record.optimization.status == "Infeasible"
+    assert record.optimization.total_cost == 0.0
+    assert record.optimization.transport_cost == 0.0
+    assert record.optimization.facility_allocated_units == 0
+    assert record.fairness.mean_fill_rate_pct == 0.0
+
+    service = DecisionExplanationService()
+    exp = service.explain(record)
+    assert exp is not None
+    assert exp.grounding_audit.is_grounded

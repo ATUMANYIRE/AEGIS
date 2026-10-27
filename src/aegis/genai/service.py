@@ -1,6 +1,7 @@
 """GenAI Decision Explanation Service with provider support and deterministic fallback."""
 
 import json
+import math
 import os
 import time
 import urllib.error
@@ -290,8 +291,14 @@ class DecisionExplanationService:
         )
 
 
+def _safe_float(val: float | None, default: float = 0.0) -> float:
+    if val is None or math.isnan(val) or math.isinf(val):
+        return default
+    return float(val)
+
+
 def build_context_record(
-    result: OptimizationResult,
+    result: OptimizationResult | None,
     facility_id: str = "H01",
     category_id: str = "PPE",
     point_forecast: float = 300.0,
@@ -358,93 +365,132 @@ def build_context_record(
         ]
 
     # 3. Optimization and Focal facility metrics
-    fac_allocated = sum(
-        a.quantity
-        for a in result.allocations
-        if a.hospital_id == facility_id and a.category_id == category_id
-    )
-    fac_shortage = next(
-        (
-            s
-            for s in result.shortages
-            if s.hospital_id == facility_id and s.category_id == category_id
-        ),
-        None,
-    )
-    fac_demand = fac_shortage.demand_units if fac_shortage else point_forecast
-    fac_fill = round((fac_allocated / fac_demand) * 100.0, 1) if fac_demand > 0 else 100.0
+    if result is None:
+        opt_ctx = OptimizationResultContext(
+            policy="Baseline_Pending",
+            status="Infeasible",
+            runtime_ms=0.0,
+            total_cost=0.0,
+            transport_cost=0.0,
+            route_activation_cost=0.0,
+            vehicle_cost=0.0,
+            shortage_penalty=0.0,
+            service_coverage_pct=0.0,
+            total_unmet_demand=round(point_forecast, 1),
+            facility_allocated_units=0,
+            facility_fill_rate_pct=0.0,
+        )
+        binding_ctx: list[BindingConstraintContext] = []
+        fair_ctx = FairnessOutcomeContext(
+            min_fill_rate_pct=0.0,
+            mean_fill_rate_pct=0.0,
+            max_fill_rate_pct=0.0,
+            disparity_ratio=0.0,
+            trauma_tier_fill_rate_pct=0.0,
+            community_tier_fill_rate_pct=0.0,
+            specialty_tier_fill_rate_pct=0.0,
+        )
+    else:
+        allocs = result.allocations or []
+        shorts = result.shortages or []
 
-    total_d = sum(s.demand_units for s in result.shortages)
-    total_unmet = sum(s.shortage_units for s in result.shortages)
-    cov_pct = round((1.0 - (total_unmet / total_d)) * 100.0, 1) if total_d > 0 else 100.0
+        fac_allocated = sum(
+            a.quantity
+            for a in allocs
+            if a.hospital_id == facility_id and a.category_id == category_id
+        )
+        fac_shortage = next(
+            (s for s in shorts if s.hospital_id == facility_id and s.category_id == category_id),
+            None,
+        )
+        fac_demand = fac_shortage.demand_units if fac_shortage else point_forecast
+        fac_fill = round((fac_allocated / fac_demand) * 100.0, 1) if fac_demand > 0 else 100.0
 
-    opt_ctx = OptimizationResultContext(
-        policy=result.policy,
-        status="Optimal"
-        if result.status == "OPTIMAL"
-        else ("Infeasible" if result.status == "INFEASIBLE" else "Feasible"),
-        runtime_ms=round(result.solver_runtime_sec * 1000.0, 1),
-        total_cost=round(result.total_cost, 2),
-        transport_cost=round(result.transportation_cost, 2),
-        route_activation_cost=round(result.fixed_route_cost, 2),
-        vehicle_cost=round(result.vehicle_cost, 2),
-        shortage_penalty=round(result.shortage_penalty, 2),
-        service_coverage_pct=cov_pct,
-        total_unmet_demand=round(total_unmet, 1),
-        facility_allocated_units=fac_allocated,
-        facility_fill_rate_pct=fac_fill,
-    )
+        total_d = sum(s.demand_units for s in shorts)
+        total_unmet = sum(s.shortage_units for s in shorts)
+        cov_pct = round((1.0 - (total_unmet / total_d)) * 100.0, 1) if total_d > 0 else 100.0
 
-    # 4. Binding constraints
-    binding_ctx: list[BindingConstraintContext] = []
-    # Identify warehouses nearing dispatch capacity or stock exhaustion
-    wh_alloc: dict[str, int] = {}
-    for a in result.allocations:
-        wh_alloc[a.warehouse_id] = wh_alloc.get(a.warehouse_id, 0) + a.quantity
-    for wh_id, qty in wh_alloc.items():
-        binding_ctx.append(
-            BindingConstraintContext(
-                constraint_type="warehouse_dispatch",
-                entity_id=wh_id,
-                utilization_pct=min(100.0, round((qty / 30000) * 100.0, 1)),
-                is_binding=qty >= 28000,
-                impact_description=f"Regional warehouse {wh_id} dispatch utilization at {qty} units",
-            )
+        opt_ctx = OptimizationResultContext(
+            policy=result.policy or "Unknown",
+            status="Optimal"
+            if result.status == "OPTIMAL"
+            else ("Infeasible" if result.status == "INFEASIBLE" else "Feasible"),
+            runtime_ms=round(_safe_float(result.solver_runtime_sec) * 1000.0, 1),
+            total_cost=round(_safe_float(result.total_cost), 2),
+            transport_cost=round(_safe_float(result.transportation_cost), 2),
+            route_activation_cost=round(_safe_float(result.fixed_route_cost), 2),
+            vehicle_cost=round(_safe_float(result.vehicle_cost), 2),
+            shortage_penalty=round(_safe_float(result.shortage_penalty), 2),
+            service_coverage_pct=cov_pct,
+            total_unmet_demand=round(_safe_float(total_unmet, result.total_unmet_demand or 0.0), 1),
+            facility_allocated_units=fac_allocated,
+            facility_fill_rate_pct=fac_fill,
         )
 
-    # 5. Fairness tier metrics
-    tier_fills: dict[str, list[float]] = {
-        "LEVEL_1_TRAUMA": [],
-        "COMMUNITY": [],
-        "SPECIALTY_CLINIC": [],
-        "REGIONAL_REFERRAL": [],
-    }
-    for s in result.shortages:
-        h_t = hosp_map[s.hospital_id].tier
-        if h_t in tier_fills:
-            tier_fills[h_t].append(s.fill_rate * 100.0)
+        # 4. Binding constraints
+        binding_ctx: list[BindingConstraintContext] = []
+        # Identify warehouses nearing dispatch capacity or stock exhaustion
+        wh_alloc: dict[str, int] = {}
+        for a in allocs:
+            wh_alloc[a.warehouse_id] = wh_alloc.get(a.warehouse_id, 0) + a.quantity
+        for wh_id, qty in wh_alloc.items():
+            binding_ctx.append(
+                BindingConstraintContext(
+                    constraint_type="warehouse_dispatch",
+                    entity_id=wh_id,
+                    utilization_pct=min(100.0, round((qty / 30000) * 100.0, 1)),
+                    is_binding=qty >= 28000,
+                    impact_description=f"Regional warehouse {wh_id} dispatch utilization at {qty} units",
+                )
+            )
 
-    trauma_avg = round(
-        sum(tier_fills["LEVEL_1_TRAUMA"]) / max(1, len(tier_fills["LEVEL_1_TRAUMA"])), 1
-    )
-    comm_avg = round(sum(tier_fills["COMMUNITY"]) / max(1, len(tier_fills["COMMUNITY"])), 1)
-    spec_avg = round(
-        sum(tier_fills["SPECIALTY_CLINIC"]) / max(1, len(tier_fills["SPECIALTY_CLINIC"])), 1
-    )
+        # 5. Fairness tier metrics
+        tier_fills: dict[str, list[float]] = {
+            "LEVEL_1_TRAUMA": [],
+            "COMMUNITY": [],
+            "SPECIALTY_CLINIC": [],
+            "REGIONAL_REFERRAL": [],
+        }
+        for s in shorts:
+            h_t = hosp_map.get(s.hospital_id, h_def).tier
+            if h_t in tier_fills:
+                tier_fills[h_t].append(s.fill_rate * 100.0)
 
-    min_fill = round(result.fairness.worst_facility_fill_rate * 100.0, 1)
-    mean_fill = round(result.fairness.mean_facility_fill_rate * 100.0, 1)
-    disp_ratio = round(min_fill / max(1.0, mean_fill), 2)
+        trauma_avg = (
+            round(sum(tier_fills["LEVEL_1_TRAUMA"]) / max(1, len(tier_fills["LEVEL_1_TRAUMA"])), 1)
+            if tier_fills["LEVEL_1_TRAUMA"]
+            else 0.0
+        )
+        comm_avg = (
+            round(sum(tier_fills["COMMUNITY"]) / max(1, len(tier_fills["COMMUNITY"])), 1)
+            if tier_fills["COMMUNITY"]
+            else 0.0
+        )
+        spec_avg = (
+            round(
+                sum(tier_fills["SPECIALTY_CLINIC"]) / max(1, len(tier_fills["SPECIALTY_CLINIC"])), 1
+            )
+            if tier_fills["SPECIALTY_CLINIC"]
+            else 0.0
+        )
 
-    fair_ctx = FairnessOutcomeContext(
-        min_fill_rate_pct=min_fill,
-        mean_fill_rate_pct=mean_fill,
-        max_fill_rate_pct=100.0,
-        disparity_ratio=disp_ratio,
-        trauma_tier_fill_rate_pct=trauma_avg,
-        community_tier_fill_rate_pct=comm_avg,
-        specialty_tier_fill_rate_pct=spec_avg,
-    )
+        if result.fairness:
+            min_fill = round(_safe_float(result.fairness.worst_facility_fill_rate) * 100.0, 1)
+            mean_fill = round(_safe_float(result.fairness.mean_facility_fill_rate) * 100.0, 1)
+        else:
+            min_fill = 0.0
+            mean_fill = 0.0
+        disp_ratio = round(min_fill / max(1.0, mean_fill), 2)
+
+        fair_ctx = FairnessOutcomeContext(
+            min_fill_rate_pct=min_fill,
+            mean_fill_rate_pct=mean_fill,
+            max_fill_rate_pct=100.0,
+            disparity_ratio=disp_ratio,
+            trauma_tier_fill_rate_pct=trauma_avg,
+            community_tier_fill_rate_pct=comm_avg,
+            specialty_tier_fill_rate_pct=spec_avg,
+        )
 
     # 6. Scenario deltas
     sd = scenario_deltas or {}

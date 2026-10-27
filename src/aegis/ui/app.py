@@ -17,6 +17,7 @@ from aegis.optimization.engine import optimize
 from aegis.optimization.schema import OptimizationResult
 from aegis.scenarios.network import NetworkParameters, TransportationNetwork
 from aegis.ui.components import (
+    get_git_commit_short,
     render_decision_explanation_card,
     render_genai_explanation_card,
     render_header,
@@ -431,6 +432,11 @@ with tab_lab:
         # Decision Explanation Card
         if cur_exp is not None:
             render_decision_explanation_card(cur_exp)
+    else:
+        st.info(
+            "ℹ️ Adjust operational parameters in the panel above and click "
+            "**Dispatch Allocation Optimizer** to solve an allocation plan and inspect cost and equity diagnostics."
+        )
 
 # ==============================================================================
 # TAB 3: EXPLAINABILITY & DIAGNOSTICS
@@ -582,46 +588,72 @@ with tab_explain:
             key="genai_query_input",
         )
 
-        if genai_run_btn or "last_genai_explanation" not in st.session_state:
-            with st.spinner("Compiling decision context and generating grounded explanation..."):
-                focal_rows = df_featured[
-                    (df_featured["hospital_id"] == genai_hosp)
-                    & (df_featured["category_id"] == genai_cat)
-                ]
-                pt_forecast = 300.0
-                p10 = 240.0
-                p90 = 380.0
-                top_shap = None
-
-                if not focal_rows.empty and shap_explainer.is_available:
-                    last_row = focal_rows.tail(1)
-                    inst_res = shap_explainer.explain_instance(last_row)
-                    pt_forecast = inst_res["prediction"]
-                    p10 = pt_forecast * 0.82
-                    p90 = pt_forecast * 1.25
-                    top_shap = inst_res.get("waterfall", [])[:4]
-
-                record = build_context_record(
-                    result=cur_opt_result,
-                    facility_id=genai_hosp,
-                    category_id=genai_cat,
-                    point_forecast=pt_forecast,
-                    p10_lower=p10,
-                    p90_upper=p90,
-                    shap_contributions=top_shap,
-                    shap_base_value=230.15,
-                    scenario_deltas={
-                        "name": "Active Scenario",
-                        "surge_pct": 0.0,
-                        "stock_ratio_pct": 100.0,
-                        "vehicle_cap": 300,
-                    },
-                    user_query=user_inquiry if user_inquiry else None,
+        if cur_opt_result is None:
+            st.info(
+                "ℹ️ **Allocation Result Pending**: No active solver allocation found in session. "
+                "Navigate to **Network Overview** or **Scenario Lab** to solve an allocation, "
+                "or click 'Explain Allocation Decision' above to generate an initial explanation."
+            )
+        elif cur_opt_result.status == "INFEASIBLE":
+            st.warning(
+                "⚠️ **Infeasible Allocation State**: The active solver policy failed to find a feasible dispatch "
+                "under strict fairness or stock constraints. "
+                + (
+                    f"Fairness relaxation summary: {cur_opt_result.fairness.relaxation_summary}"
+                    if cur_opt_result.fairness and cur_opt_result.fairness.relaxation_summary
+                    else ""
                 )
+            )
 
-                genai_service = DecisionExplanationService()
-                explanation = genai_service.explain(record)
-                st.session_state["last_genai_explanation"] = explanation
+        if genai_run_btn or (
+            "last_genai_explanation" not in st.session_state and cur_opt_result is not None
+        ):
+            with st.spinner("Compiling decision context and generating grounded explanation..."):
+                try:
+                    focal_rows = (
+                        df_featured[
+                            (df_featured["hospital_id"] == genai_hosp)
+                            & (df_featured["category_id"] == genai_cat)
+                        ]
+                        if df_featured is not None
+                        else pd.DataFrame()
+                    )
+                    pt_forecast = 300.0
+                    p10 = 240.0
+                    p90 = 380.0
+                    top_shap = None
+
+                    if not focal_rows.empty and shap_explainer.is_available:
+                        last_row = focal_rows.tail(1)
+                        inst_res = shap_explainer.explain_instance(last_row)
+                        pt_forecast = inst_res["prediction"]
+                        p10 = pt_forecast * 0.82
+                        p90 = pt_forecast * 1.25
+                        top_shap = inst_res.get("waterfall", [])[:4]
+
+                    record = build_context_record(
+                        result=cur_opt_result,
+                        facility_id=genai_hosp,
+                        category_id=genai_cat,
+                        point_forecast=pt_forecast,
+                        p10_lower=p10,
+                        p90_upper=p90,
+                        shap_contributions=top_shap,
+                        shap_base_value=230.15,
+                        scenario_deltas={
+                            "name": "Active Scenario",
+                            "surge_pct": 0.0,
+                            "stock_ratio_pct": 100.0,
+                            "vehicle_cap": 300,
+                        },
+                        user_query=user_inquiry if user_inquiry else None,
+                    )
+
+                    genai_service = DecisionExplanationService()
+                    explanation = genai_service.explain(record)
+                    st.session_state["last_genai_explanation"] = explanation
+                except Exception as exc:
+                    st.error(f"GenAI explanation generation encountered a temporary issue: {exc}")
 
         if "last_genai_explanation" in st.session_state:
             render_genai_explanation_card(st.session_state["last_genai_explanation"])
@@ -765,19 +797,21 @@ with tab_governance:
 
     st.markdown("##### Model Provenance & Artifact Hashes")
     gov_col1, gov_col2 = st.columns(2)
+    commit_hash = get_git_commit_short()
     with gov_col1:
         st.markdown(
-            """
+            f"""
             - **Forecasting Model:** XGBoost Gradient Boosted Decision Trees (`models/xgboost_demand.joblib`)
             - **Quantile Loss Intervals:** 10th & 90th percentile bounds (`reg:quantileerror`)
             - **Optimization Solver:** SciPy HiGHS Dual Simplex / Branch-and-Cut
-            - **Audit Document:** `docs/MILESTONE_02_AUDIT.md` (Commit: `3098ab2d`)
-            """
+            - **Audit Release:** `docs/SUBMISSION_AUDIT.md` (Commit: `<code>{commit_hash}</code>`)
+            """,
+            unsafe_allow_html=True,
         )
     with gov_col2:
         st.markdown(
             """
-            - **Active Test Suite:** 62 Passing Tests (Schema, Generator, Leakage, Optimization, Audit)
+            - **Active Test Suite:** 84+ Passing Tests (Schema, Generator, Leakage, Optimization, SHAP, GenAI, Cold-Start)
             - **Python Runtime:** Python 3.11.9 (CPython)
             - **Package Engine:** `uv`
             - **Deterministic Seed:** PRNG Seed 42
@@ -788,8 +822,9 @@ with tab_governance:
     st.markdown("##### Audit Trail & Session Export")
     export_json = {
         "timestamp": pd.Timestamp.now().isoformat(),
-        "milestone": "Milestone 3",
-        "provenance_commit": "3098ab2d5a70422a64a4f73e2ef96b65ddb6c73e",
+        "release_version": "0.4.0",
+        "milestone": "Milestone 4 - Production Release",
+        "provenance_commit": commit_hash,
         "active_policy": st.session_state.get("policy"),
         "active_result_summary": {
             "status": st.session_state.get("active_result").status
@@ -805,7 +840,10 @@ with tab_governance:
             if st.session_state.get("active_result")
             else None,
             "mean_fill_rate": st.session_state.get("active_result").fairness.mean_facility_fill_rate
-            if st.session_state.get("active_result")
+            if (
+                st.session_state.get("active_result")
+                and st.session_state.get("active_result").fairness
+            )
             else None,
         },
     }
