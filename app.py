@@ -1,5 +1,6 @@
 """AEGIS Decision Intelligence Platform — Streamlit Cloud Entry Point."""
 
+import runpy
 import sys
 import traceback
 from pathlib import Path
@@ -11,8 +12,9 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 try:
-    # Import and execute the UI decision workspace
-    import aegis.ui.app  # noqa: E402, F401
+    # Execute the UI decision workspace on every Streamlit rerun
+    app_script = _SRC / "aegis" / "ui" / "app.py"
+    runpy.run_path(str(app_script), run_name="__main__")
 except Exception as exc:
     import streamlit as st
 
