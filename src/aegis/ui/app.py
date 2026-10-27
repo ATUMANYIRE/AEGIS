@@ -83,7 +83,7 @@ tab_overview, tab_lab, tab_explain, tab_stress, tab_governance = st.tabs(
 with tab_overview:
     st.markdown("#### Real-Time Healthcare Supply Chain Overview")
     st.markdown(
-        "<div style='color: #64748B; font-size: 0.88rem; margin-bottom: 16px;'>"
+        "<div style='color: #5B6B75; font-size: 0.88rem; margin-bottom: 16px;'>"
         "Deterministic synthetic network modeling 20 hospitals across 4 operational tiers, 3 fulfillment warehouses, and 3 medical consumable categories."
         "</div>",
         unsafe_allow_html=True,
@@ -234,7 +234,7 @@ with tab_overview:
 with tab_lab:
     st.markdown("#### Scenario Lab & Interactive Optimization Engine")
     st.markdown(
-        "<div style='color: #64748B; font-size: 0.88rem; margin-bottom: 16px;'>"
+        "<div style='color: #5B6B75; font-size: 0.88rem; margin-bottom: 16px;'>"
         "Configure operational stress parameters, dispatch real Mixed-Integer Linear Programs, and inspect resource feasibility."
         "</div>",
         unsafe_allow_html=True,
@@ -444,7 +444,7 @@ with tab_lab:
 with tab_explain:
     st.markdown("#### Explainability & Decision Intelligence Architecture")
     st.markdown(
-        "<div style='color: #64748B; font-size: 0.88rem; margin-bottom: 16px;'>"
+        "<div style='color: #5B6B75; font-size: 0.88rem; margin-bottom: 16px;'>"
         "<b>Important Scientific Distinction:</b> SHAP explains the <i>probabilistic demand forecast</i>. "
         "The Allocation Decision Explainer attributes <i>operations research allocation decisions</i> to solver constraints, fleet capacities, and costs."
         "</div>",
@@ -664,7 +664,7 @@ with tab_explain:
 with tab_stress:
     st.markdown("#### Resilience Stress Testing & Audited Baselines")
     st.markdown(
-        "<div style='color: #64748B; font-size: 0.88rem; margin-bottom: 16px;'>"
+        "<div style='color: #5B6B75; font-size: 0.88rem; margin-bottom: 16px;'>"
         "Benchmark AEGIS allocation policies against severe disruptions and inspect verified scientific results."
         "</div>",
         unsafe_allow_html=True,
@@ -783,7 +783,7 @@ with tab_governance:
     st.markdown(
         """
         <div class="aegis-card">
-            <h4 style="margin-top: 0; color: #172B46;">Operational Ethics & Scope Disclaimers</h4>
+            <h4 style="margin-top: 0; color: #172B36;">Operational Ethics & Scope Disclaimers</h4>
             <ul>
                 <li><b>Explicitly Synthetic Data:</b> All 20 hospitals, 3 warehouses, patient demand volumes, and coordinate grids are parameterized synthetic data models created for logistics research. No actual protected health information (PHI) or personally identifiable information (PII) is accessed, stored, or processed.</li>
                 <li><b>Clinical Non-Validation:</b> AEGIS is a logistical supply allocation decision-support engine for non-patient-specific medical consumables (PPE, surface disinfectants, utility items). It does <i>not</i> provide clinical triage, patient diagnosis, drug dosage, or treatment recommendations.</li>

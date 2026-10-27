@@ -2,26 +2,32 @@
 
 import streamlit as st
 
-# Enterprise Light Warm-White Color Palette
-BG_COLOR = "#F8FAFC"
+# AEGIS / Clarity Under Pressure palette
+BG_COLOR = "#F5F3ED"  # warm ivory canvas
 SURFACE_COLOR = "#FFFFFF"
-TEXT_PRIMARY = "#172B46"
-TEXT_MUTED = "#64748B"
-ACCENT_PRIMARY = "#2367A3"  # Primary corporate blue
-ACCENT_SECONDARY = "#378D73"  # Operations sage green
-WARNING_COLOR = "#C78B31"  # Advisory amber
-DANGER_COLOR = "#DC2626"  # Alert red
-BORDER_COLOR = "#E2E8F0"  # Subtle card border
-HOVER_COLOR = "#F1F5F9"
+SURFACE_SOFT = "#FBFAF6"
+NAV_COLOR = "#101E2B"  # midnight navy
+TEXT_PRIMARY = "#172B36"  # ink
+TEXT_MUTED = "#5B6B75"
+ACCENT_PRIMARY = "#216C65"  # deep teal
+ACCENT_SECONDARY = "#4F9A8B"  # chart-safe supporting teal
+TEAL_TINT = "#BBDDD0"
+WARNING_COLOR = "#D8A15B"  # muted amber
+DANGER_COLOR = "#B4443C"
+BORDER_COLOR = "#DDD9CE"
+HOVER_COLOR = "#ECE9DF"
+
+FONT_HEAD = 'Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif'
+FONT_UI = '"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif'
 
 # Plotly Color Sequence aligned with Enterprise Design
 PLOTLY_COLORS = [
     ACCENT_PRIMARY,
     ACCENT_SECONDARY,
     WARNING_COLOR,
-    "#6366F1",  # Indigo
-    "#0EA5E9",  # Cyan
-    "#EC4899",  # Pink
+    "#101E2B",
+    "#7A8B94",
+    "#B4443C",
 ]
 
 
@@ -29,196 +35,71 @@ def apply_custom_css() -> None:
     """Inject polished enterprise styling into Streamlit DOM."""
     css = f"""
     <style>
-    /* Global Base */
-    .stApp {{
-        background-color: {BG_COLOR};
-        color: {TEXT_PRIMARY};
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }}
+    .stApp {{ background-color: {BG_COLOR}; color: {TEXT_PRIMARY}; font-family: {FONT_UI}; }}
+    header[data-testid="stHeader"] {{ background-color: transparent; }}
+    .block-container {{ max-width: 1320px; padding-top: 2.4rem; padding-bottom: 2.5rem; }}
+    h1, h2, h3, h4 {{ font-family: {FONT_HEAD}; color: {TEXT_PRIMARY}; font-weight: 600; letter-spacing: -0.005em; }}
+    h4 {{ font-size: 1.2rem; margin: 0.6rem 0 0.15rem 0; }}
+    hr {{ margin: 1rem 0; border-color: {BORDER_COLOR}; }}
 
-    /* Header & Top Bar */
-    header[data-testid="stHeader"] {{
-        background-color: {BG_COLOR};
-    }}
+    /* Sidebar: midnight navigation */
+    section[data-testid="stSidebar"] {{ background-color: {NAV_COLOR}; border-right: none; }}
+    section[data-testid="stSidebar"] * {{ color: #D9E2E7; }}
+    .aegis-brand {{ padding-bottom: 14px; border-bottom: 1px solid #2A3B4A; margin-bottom: 4px; }}
+    .aegis-brand-name {{ font-family: {FONT_HEAD}; font-size: 1.7rem; font-weight: 600; letter-spacing: 0.14em; color: #FFFFFF !important; }}
+    .aegis-brand-sub {{ font-size: 0.72rem; color: {TEAL_TINT} !important; letter-spacing: 0.04em; }}
+    .aegis-side-title {{ font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: {TEAL_TINT} !important; margin: 18px 0 6px 0; }}
+    .aegis-kv {{ display: flex; justify-content: space-between; gap: 10px; font-size: 0.78rem; padding: 5px 0; border-bottom: 1px solid #22323F; }}
+    .aegis-kv span {{ color: #93A4AE !important; }}
+    .aegis-kv b {{ color: #FFFFFF !important; font-weight: 600; text-align: right; }}
+    .aegis-note {{ font-size: 0.76rem; line-height: 1.45; padding: 7px 10px; margin-bottom: 6px; background: #17293A; border-left: 3px solid {WARNING_COLOR}; border-radius: 4px; }}
 
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {{
-        background-color: {SURFACE_COLOR};
-        border-right: 1px solid {BORDER_COLOR};
-    }}
-    section[data-testid="stSidebar"] .stMarkdown {{
-        color: {TEXT_PRIMARY};
-    }}
-
-    /* Metric Cards */
-    div[data-testid="stMetric"] {{
-        background-color: {SURFACE_COLOR};
-        border: 1px solid {BORDER_COLOR};
-        border-radius: 8px;
-        padding: 14px 18px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }}
-    div[data-testid="stMetric"]:hover {{
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
-        border-color: {ACCENT_PRIMARY};
-    }}
-    div[data-testid="stMetric"] label {{
-        color: {TEXT_MUTED} !important;
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }}
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
-        color: {TEXT_PRIMARY} !important;
-        font-weight: 700 !important;
-    }}
-
-    /* Buttons */
-    .stButton > button {{
-        background-color: {ACCENT_PRIMARY};
-        color: #FFFFFF;
-        border: none;
-        border-radius: 6px;
-        padding: 0.5rem 1.25rem;
-        font-weight: 600;
-        transition: background-color 0.15s ease;
-    }}
-    .stButton > button:hover {{
-        background-color: #1A4F7D;
-        color: #FFFFFF;
-    }}
-    .stButton > button:active {{
-        background-color: #133A5C;
-    }}
-
-    /* Custom Card Containers */
-    .aegis-card {{
-        background-color: {SURFACE_COLOR};
-        border: 1px solid {BORDER_COLOR};
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 18px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }}
-
-    .aegis-badge {{
-        display: inline-block;
-        padding: 3px 9px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        margin-right: 6px;
-        margin-bottom: 4px;
-    }}
-    .badge-synthetic {{
-        background-color: #FEF3C7;
-        color: #92400E;
-        border: 1px solid #FDE68A;
-    }}
-    .badge-clinical {{
-        background-color: #E0E7FF;
-        color: #3730A3;
-        border: 1px solid #C7D2FE;
-    }}
-    .badge-success {{
-        background-color: #DEF7EC;
-        color: #03543F;
-        border: 1px solid #BCF0DA;
-    }}
-    .badge-danger {{
-        background-color: #FDE8E8;
-        color: #9B1C1C;
-        border: 1px solid #FBD5D5;
-    }}
-    .badge-info {{
-        background-color: #E1EFFE;
-        color: #1E429F;
-        border: 1px solid #B4C6FC;
-    }}
-
-    /* Tab Styling */
-    .stTabs [data-baseweb="tab-list"] {{
-        gap: 8px;
-        background-color: transparent;
-        border-bottom: 2px solid {BORDER_COLOR};
-        padding-bottom: 4px;
-    }}
-    .stTabs [data-baseweb="tab"] {{
-        background-color: transparent;
-        border-radius: 6px 6px 0 0;
-        font-weight: 600;
-        color: {TEXT_MUTED};
-        padding: 8px 16px;
-    }}
-    .stTabs [aria-selected="true"] {{
-        color: {ACCENT_PRIMARY} !important;
-        border-bottom: 2px solid {ACCENT_PRIMARY} !important;
-    }}
-    /* ---- Shell polish ---- */
-    .block-container {{ max-width: 1280px; padding-top: 2.2rem; padding-bottom: 2rem; }}
-    h1, h2, h3, h4 {{ color: {TEXT_PRIMARY}; letter-spacing: -0.01em; font-weight: 650; }}
-    h4 {{ font-size: 1.05rem; margin: 0.4rem 0 0.2rem 0; }}
-    hr {{ margin: 0.9rem 0; border-color: {BORDER_COLOR}; }}
-
-    .aegis-header {{
-        display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-        background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR};
-        border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
-    }}
-    .aegis-logo {{
-        background: {ACCENT_PRIMARY}; color: #fff; width: 36px; height: 36px;
-        border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
-    }}
+    /* Product header */
+    .aegis-header {{ display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: {NAV_COLOR}; border-radius: 12px; padding: 14px 20px; margin-bottom: 16px; }}
+    .aegis-logo {{ background: {ACCENT_PRIMARY}; color: #fff; width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }}
     .aegis-title-block {{ flex: 1 1 320px; min-width: 0; }}
-    .aegis-title {{ font-size: 1.2rem; font-weight: 700; color: {TEXT_PRIMARY}; line-height: 1.25; }}
-    .aegis-subtitle {{ font-size: 0.8rem; color: {TEXT_MUTED}; }}
-    .aegis-header-badges {{ display: flex; gap: 4px; flex-wrap: wrap; }}
+    .aegis-title {{ font-family: {FONT_HEAD}; font-size: 1.35rem; font-weight: 600; color: #FFFFFF; line-height: 1.25; }}
+    .aegis-subtitle {{ font-size: 0.8rem; color: {TEAL_TINT}; }}
+    .aegis-header-badges {{ display: flex; gap: 6px; flex-wrap: wrap; }}
     .aegis-header-badges .aegis-badge {{ margin: 0; }}
 
-    .aegis-brand {{ padding-bottom: 12px; border-bottom: 1px solid {BORDER_COLOR}; margin-bottom: 4px; }}
-    .aegis-brand-name {{ font-size: 1.3rem; font-weight: 800; letter-spacing: 0.08em; color: {ACCENT_PRIMARY}; }}
-    .aegis-brand-sub {{ font-size: 0.72rem; color: {TEXT_MUTED}; }}
-    .aegis-side-title {{
-        font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-        color: {TEXT_MUTED}; margin: 16px 0 6px 0;
-    }}
-    .aegis-kv {{
-        display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem;
-        padding: 4px 0; border-bottom: 1px dashed {BORDER_COLOR};
-    }}
-    .aegis-kv span {{ color: {TEXT_MUTED}; }}
-    .aegis-kv b {{ color: {TEXT_PRIMARY}; font-weight: 600; text-align: right; }}
-    .aegis-note {{
-        font-size: 0.76rem; color: #475569; line-height: 1.4; padding: 6px 8px; margin-bottom: 6px;
-        background: {BG_COLOR}; border-left: 3px solid {ACCENT_SECONDARY}; border-radius: 4px;
-    }}
+    /* Badges */
+    .aegis-badge {{ display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em; margin-right: 6px; margin-bottom: 4px; white-space: nowrap; }}
+    .badge-synthetic {{ background: {WARNING_COLOR}; color: #2B1E08; }}
+    .badge-clinical {{ background: {TEAL_TINT}; color: #0E3B37; }}
+    .badge-success {{ background: #D5EBDF; color: #0E4A33; border: 1px solid #A9D3BE; }}
+    .badge-danger {{ background: #F5DAD7; color: #7A241E; border: 1px solid #E6B3AE; }}
+    .badge-info {{ background: #DCEBEF; color: #1B4A57; border: 1px solid #B5D2DA; }}
 
-    div[data-testid="stMetric"] {{ padding: 10px 14px; }}
-    div[data-testid="stMetricValue"] {{ font-size: 1.35rem; }}
-    div[data-testid="stMetric"] label {{ font-size: 0.7rem !important; }}
+    /* Cards */
+    .aegis-card {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-radius: 10px; padding: 18px; margin-bottom: 16px; }}
+    div[data-testid="stMetric"] {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-top: 3px solid {ACCENT_PRIMARY}; border-radius: 10px; padding: 12px 14px; min-width: 0; }}
+    div[data-testid="stMetric"] label, div[data-testid="stMetric"] label p {{ color: {TEXT_MUTED} !important; font-size: 0.72rem !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.05em; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.25; }}
+    div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] div {{ color: {TEXT_PRIMARY} !important; font-family: {FONT_HEAD}; font-weight: 600 !important; font-size: 1.5rem; font-variant-numeric: tabular-nums; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }}
+    div[data-testid="stMetricDelta"] {{ font-size: 0.78rem; white-space: normal !important; }}
 
-    .stButton > button, .stDownloadButton > button {{ box-shadow: 0 1px 2px rgba(23,43,70,0.12); }}
-    .stButton > button:focus-visible {{ outline: 2px solid {ACCENT_SECONDARY}; outline-offset: 2px; }}
-    div[data-baseweb="select"] > div, .stNumberInput input, .stTextInput input {{
-        border-radius: 6px; border-color: {BORDER_COLOR};
-    }}
-    div[data-testid="stAlert"] {{ border-radius: 8px; border: 1px solid {BORDER_COLOR}; }}
-    div[data-testid="stDataFrame"] {{
-        border: 1px solid {BORDER_COLOR}; border-radius: 8px; overflow: hidden;
-    }}
-    div[data-testid="stPlotlyChart"] {{
-        background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-radius: 8px; padding: 4px;
-    }}
-    div[data-testid="stExpander"] {{ border: 1px solid {BORDER_COLOR}; border-radius: 8px; background: {SURFACE_COLOR}; }}
-    .stTabs [data-baseweb="tab-list"] {{ gap: 4px; flex-wrap: wrap; }}
-    .stTabs [data-baseweb="tab"] {{ padding: 8px 14px; font-size: 0.9rem; }}
-    .stTabs [data-baseweb="tab"]:hover {{ background: {HOVER_COLOR}; }}
+    /* Controls */
+    .stButton > button, .stDownloadButton > button {{ background: {ACCENT_PRIMARY}; color: #FFFFFF; border: 1px solid {ACCENT_PRIMARY}; border-radius: 8px; padding: 0.5rem 1.3rem; font-weight: 600; }}
+    .stButton > button:hover, .stDownloadButton > button:hover {{ background: #174F4A; border-color: #174F4A; color: #FFFFFF; }}
+    .stButton > button:focus-visible {{ outline: 3px solid {WARNING_COLOR}; outline-offset: 2px; }}
+    div[data-baseweb="select"] > div, .stNumberInput input, .stTextInput input {{ border-radius: 8px; border-color: {BORDER_COLOR}; background: {SURFACE_COLOR}; }}
+    div[data-testid="stAlert"] {{ border-radius: 10px; border: 1px solid {BORDER_COLOR}; }}
+    div[data-testid="stDataFrame"] {{ border: 1px solid {BORDER_COLOR}; border-radius: 10px; overflow: hidden; }}
+    div[data-testid="stPlotlyChart"] {{ background: {SURFACE_COLOR}; border: 1px solid {BORDER_COLOR}; border-radius: 10px; padding: 6px; overflow: hidden; }}
+    div[data-testid="stPlotlyChart"] .js-plotly-plot, div[data-testid="stPlotlyChart"] .plot-container {{ overflow: hidden !important; }}
+    div[data-testid="stExpander"] {{ border: 1px solid {BORDER_COLOR}; border-radius: 10px; background: {SURFACE_COLOR}; }}
+
+    /* Tabs as primary navigation */
+    .stTabs [data-baseweb="tab-list"] {{ gap: 2px; flex-wrap: wrap; border-bottom: 1px solid {BORDER_COLOR}; background: transparent; }}
+    .stTabs [data-baseweb="tab"] {{ font-weight: 600; color: {TEXT_MUTED}; padding: 10px 16px; font-size: 0.92rem; border-radius: 8px 8px 0 0; }}
+    .stTabs [data-baseweb="tab"]:hover {{ background: {HOVER_COLOR}; color: {TEXT_PRIMARY}; }}
+    .stTabs [aria-selected="true"] {{ color: {ACCENT_PRIMARY} !important; }}
+    .stTabs [data-baseweb="tab-highlight"] {{ background-color: {ACCENT_PRIMARY} !important; height: 3px; }}
+
     @media (max-width: 768px) {{
-        .block-container {{ padding-left: 0.8rem; padding-right: 0.8rem; }}
+        .block-container {{ padding-left: 0.8rem; padding-right: 0.8rem; padding-top: 1.5rem; }}
         .aegis-header-badges {{ flex-basis: 100%; }}
+        .aegis-title {{ font-size: 1.15rem; }}
     }}
     </style>
     """

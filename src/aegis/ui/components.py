@@ -57,7 +57,7 @@ def render_provenance_sidebar(metadata: dict[str, Any] | None = None) -> None:
         <div class="aegis-brand">
             <div class="aegis-brand-name">AEGIS</div>
             <div class="aegis-brand-sub">DATANOVA 2026 &middot; Decision workspace</div>
-            <div style="margin-top: 4px; font-size: 0.72rem; color: #64748B;">
+            <div style="margin-top: 4px; font-size: 0.72rem; color: #5B6B75;">
                 Build: <code>{commit}</code> &middot; 86 Tests Passing
             </div>
         </div>
@@ -141,7 +141,7 @@ def render_decision_explanation_card(explanation: DecisionExplanation) -> None:
         f"""
         <div class="aegis-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="font-weight: 700; font-size: 1.1rem; color: #172B46;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: #172B36;">
                     Operational Decision Summary &bull; {explanation.policy}
                 </div>
                 <div>{status_badge}</div>
@@ -149,11 +149,11 @@ def render_decision_explanation_card(explanation: DecisionExplanation) -> None:
             <div style="font-size: 0.92rem; color: #334155; line-height: 1.55; margin-bottom: 14px;">
                 {explanation.executive_summary}
             </div>
-            <div style="background-color: #F8FAFC; border-left: 3px solid #2367A3; padding: 10px 14px; border-radius: 4px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: #2367A3; text-transform: uppercase; margin-bottom: 6px;">
+            <div style="background-color: #F5F3ED; border-left: 3px solid #216C65; padding: 10px 14px; border-radius: 4px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">
                     Key Optimization Drivers
                 </div>
-                <ul style="margin: 0; padding-left: 18px; font-size: 0.85rem; color: #475569;">
+                <ul style="margin: 0; padding-left: 18px; font-size: 0.85rem; color: #5B6B75;">
                     {"".join(f'<li style="margin-bottom: 4px;">{d}</li>' for d in explanation.key_drivers)}
                 </ul>
             </div>
@@ -178,11 +178,11 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
 
     st.markdown(
         f"""
-        <div class="aegis-card" style="border: 1px solid #B4C6FC; background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);">
+        <div class="aegis-card" style="border: 1px solid #B4C6FC; background: linear-gradient(180deg, #FFFFFF 0%, #F5F3ED 100%);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 1.25rem;">🤖</span>
-                    <span style="font-weight: 700; font-size: 1.1rem; color: #172B46;">
+                    <span style="font-weight: 700; font-size: 1.1rem; color: #172B36;">
                         Grounded GenAI Decision Intelligence
                     </span>
                 </div>
@@ -192,13 +192,13 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
                 </div>
             </div>
 
-            <div style="font-size: 0.95rem; color: #172B46; font-weight: 600; line-height: 1.5; margin-bottom: 12px; padding: 10px 14px; background-color: #F1F5F9; border-radius: 6px; border-left: 4px solid #2367A3;">
+            <div style="font-size: 0.95rem; color: #172B36; font-weight: 600; line-height: 1.5; margin-bottom: 12px; padding: 10px 14px; background-color: #F1F5F9; border-radius: 6px; border-left: 4px solid #216C65;">
                 {genai_exp.executive_summary}
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 14px; border-radius: 6px;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #2367A3; text-transform: uppercase; margin-bottom: 6px;">
+                <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">
                         📈 Demand &amp; TreeSHAP Rationale
                     </div>
                     <div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">
@@ -206,7 +206,7 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
                     </div>
                 </div>
 
-                <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 14px; border-radius: 6px;">
+                <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: #378D73; text-transform: uppercase; margin-bottom: 6px;">
                         ⚖️ Constraints &amp; Optimization
                     </div>
@@ -216,7 +216,7 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
                 </div>
             </div>
 
-            <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px 14px; border-radius: 6px; margin-bottom: 14px;">
+            <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px; margin-bottom: 14px;">
                 <div style="font-size: 0.8rem; font-weight: 700; color: #C78B31; text-transform: uppercase; margin-bottom: 6px;">
                     🛡️ Clinical Tier Equity &amp; Shortage Assessment
                 </div>

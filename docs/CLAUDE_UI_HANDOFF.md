@@ -32,3 +32,13 @@
 .venv/Scripts/python.exe -m streamlit run app.py
 git push origin master   # only after browser verification
 ```
+
+---
+## Redesign pass (Checkpoint 1 only) — "Clarity Under Pressure"
+- Rollback tag: `pre-redesign-rollback` (at 1818e57). Earlier tag: `pre-ui-polish-rollback`.
+- DONE (checkpoint 1): new palette/typography in `theme.py` (ivory canvas, midnight navy sidebar/header, deep teal actions, amber caution, Georgia serif headings + system sans UI), metric labels no longer truncated, chart cards without nested scroll, tab styling, Plotly base layout (legend moved to y=-0.34, bottom margin 110, font), hardcoded old hex colors in app.py/components.py remapped.
+- Verified: ruff check + format on theme/plots, UI pytest (11 pass), AppTest no exceptions. NOT verified in a real browser; chart overlap fixes are untested visually.
+- NOT done: checkpoints 2-8 (tab-by-tab redesigns, Stress N=16 explanation, governance export hardening, browser QA at 1440/1366/390, full pytest, push, live verification).
+- To investigate (checkpoint 2): fill rate >100% / allocated > displayed demand. Likely allocation is against point forecast vs realized/scenario demand; check `aegis.optimization` fairness fill-rate definition before changing any display.
+- Not pushed. Live site not verified.
+- Resume: `git status`; run `.venv/Scripts/python.exe -m streamlit run app.py`, screenshot all tabs at 3 viewports, then start CP2 in src/aegis/ui/app.py (Overview block ~lines 82-370).
