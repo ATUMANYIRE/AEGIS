@@ -117,7 +117,7 @@ def create_deck():
     b_box = s1.shapes.add_textbox(Inches(1.8), Inches(4.8), Inches(9.7), Inches(0.8))
     tf_b = b_box.text_frame
     p_b = tf_b.paragraphs[0]
-    p_b.text = "DATANOVA 2026 Submission  •  Milestone 4 Final Release  •  79 Passing Tests  •  Audited & Reconciled Metrics"
+    p_b.text = "DATANOVA 2026 Submission  •  Milestone 4 Final Release  •  86 Passing Tests  •  Audited & Reconciled Metrics"
     p_b.font.size = Pt(11)
     p_b.font.bold = True
     p_b.font.color.rgb = C_SAGE

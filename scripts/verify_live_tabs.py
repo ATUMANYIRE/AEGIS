@@ -30,9 +30,7 @@ def send_cdp_cmd(ws, msg_id, method, params=None):
 
 
 def eval_js(ws, msg_id, expr):
-    res = send_cdp_cmd(
-        ws, msg_id, "Runtime.evaluate", {"expression": expr, "returnByValue": True}
-    )
+    res = send_cdp_cmd(ws, msg_id, "Runtime.evaluate", {"expression": expr, "returnByValue": True})
     return res.get("result", {}).get("value")
 
 
@@ -62,7 +60,7 @@ def main():
     try:
         time.sleep(3)
         ws_url = None
-        for attempt in range(12):
+        for _attempt in range(12):
             try:
                 with urllib.request.urlopen(f"http://localhost:{PORT}/json/list") as resp:
                     pages = json.loads(resp.read().decode())
@@ -107,7 +105,9 @@ def main():
                 """,
             )
             msg_id += 1
-            print(f"[{wait_sec * 5}s] Title: {status_check.get('title')}, Tabs found: {status_check.get('tabs')}, Exceptions: {status_check.get('exceptions')}")
+            print(
+                f"[{wait_sec * 5}s] Title: {status_check.get('title')}, Tabs found: {status_check.get('tabs')}, Exceptions: {status_check.get('exceptions')}"
+            )
             if status_check.get("tabs") and len(status_check.get("tabs")) >= 3:
                 break
 

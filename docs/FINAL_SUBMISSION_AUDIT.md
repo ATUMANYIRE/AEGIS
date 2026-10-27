@@ -189,7 +189,7 @@ The 10-slide PowerPoint presentation ([`presentation/AEGIS_DATANOVA_2026.pptx`](
      git branch -M master
      git push -u origin master
      ```
-  3. Log into [share.streamlit.io](https://share.streamlit.io), click **"New app"**, select the `aegis` repository, set **Main file path** to `app.py`, and click **Deploy**.
+  3. The application is live at [https://aegis-datanova-2026.streamlit.app/](https://aegis-datanova-2026.streamlit.app/) with root entry point `app.py`.
 
 ---
 
@@ -198,7 +198,7 @@ The 10-slide PowerPoint presentation ([`presentation/AEGIS_DATANOVA_2026.pptx`](
 To reproduce the entire scientific release from scratch:
 
 ```powershell
-# 1. Run the entire automated test suite (79 passing tests)
+# 1. Run the entire automated test suite (86 passing tests)
 uv run pytest -v
 
 # 2. Recompute forecasting evaluation metrics on held-out test data
@@ -230,7 +230,7 @@ uv run ruff format --check .
 | **Statistical Rigor** | Reconciled matched subsets | $N=16$ common feasible; 95% bootstrap CIs reported | **PASS** |
 | **Presentation Deck** | 10 editable widescreen slides | Reconciled numbers; embedded genuine UI screenshots | **PASS** |
 | **Code Standards** | 0 lint or format defects | Ruff check and format clean across 77 files | **PASS** |
-| **Automated Tests** | $\ge 70$ passing tests | **79 passing tests** with 0 failures in Pytest | **PASS** |
+| **Automated Tests** | $\ge 70$ passing tests | **86 passing tests** with 0 failures in Pytest | **PASS** |
 | **Responsible AI** | Clinical boundaries & grounding | 100% grounded numbers; clinical advice prohibited | **PASS** |
 
 ### Final Audit Verdict: **`PASS`**

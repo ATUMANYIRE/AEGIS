@@ -804,14 +804,14 @@ with tab_governance:
             - **Forecasting Model:** XGBoost Gradient Boosted Decision Trees (`models/xgboost_demand.joblib`)
             - **Quantile Loss Intervals:** 10th & 90th percentile bounds (`reg:quantileerror`)
             - **Optimization Solver:** SciPy HiGHS Dual Simplex / Branch-and-Cut
-            - **Audit Release:** `docs/SUBMISSION_AUDIT.md` (Commit: `<code>{commit_hash}</code>`)
+            - **Audit Release:** `docs/FINAL_SUBMISSION_AUDIT.md` (Commit: `<code>{commit_hash}</code>`)
             """,
             unsafe_allow_html=True,
         )
     with gov_col2:
         st.markdown(
             """
-            - **Active Test Suite:** 84+ Passing Tests (Schema, Generator, Leakage, Optimization, SHAP, GenAI, Cold-Start)
+            - **Active Test Suite:** 86 Passing Tests (Schema, Generator, Leakage, Optimization, SHAP, GenAI, Cold-Start)
             - **Python Runtime:** Python 3.11.9 (CPython)
             - **Package Engine:** `uv`
             - **Deterministic Seed:** PRNG Seed 42

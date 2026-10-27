@@ -300,17 +300,18 @@ A 10-slide widescreen presentation deck is generated at [`presentation/AEGIS_DAT
 9. Security, Feasibility, and System Limitations
 10. Implementation Roadmap and Business Impact
 
-### 10.4 Cloud Deployment Readiness
+### 10.4 Cloud Deployment Readiness & Live Application
 
-- **Entry Point:** Root [`app.py`](file:///E:/Projects/aegis/app.py) with portable relative path resolution.
+- **Live Production URL:** [https://aegis-datanova-2026.streamlit.app/](https://aegis-datanova-2026.streamlit.app/)
+- **Entry Point:** Root [`app.py`](file:///E:/Projects/aegis/app.py) with portable relative path resolution and dynamic session runner.
 - **Dependencies:** Pinned [`requirements.txt`](file:///E:/Projects/aegis/requirements.txt) compatible with Python 3.11.
-- **Theming & Server:** [`.streamlit/config.toml`](file:///E:/Projects/aegis/.streamlit/config.toml) and secrets template [`.streamlit/secrets.toml.example`](file:///E:/Projects/aegis/.streamlit/secrets.toml.example).
+- **Theming & Server:** [`.streamlit/config.toml`](file:///E:/Projects/aegis/.streamlit/config.toml) with full error detail tracing.
 - **Deployment Guide:** Detailed step-by-step instructions in [`docs/DEPLOYMENT.md`](file:///E:/Projects/aegis/docs/DEPLOYMENT.md).
 
 ### 10.5 Complete PowerShell Run Commands for Milestone 4
 
 ```powershell
-# 1. Run the entire AEGIS test suite (79 passing tests across M1, M2, M3, and M4)
+# 1. Run the entire AEGIS test suite (86 passing tests across M1, M2, M3, and M4)
 uv run pytest -v
 
 # 2. Run the specialized GenAI and Presentation tests

@@ -58,7 +58,7 @@ def render_provenance_sidebar(metadata: dict[str, Any] | None = None) -> None:
             <div class="aegis-brand-name">AEGIS</div>
             <div class="aegis-brand-sub">DATANOVA 2026 &middot; Decision workspace</div>
             <div style="margin-top: 4px; font-size: 0.72rem; color: #64748B;">
-                Build: <code>{commit}</code> &middot; 84+ Tests Passing
+                Build: <code>{commit}</code> &middot; 86 Tests Passing
             </div>
         </div>
         <div class="aegis-side-title">System</div>
