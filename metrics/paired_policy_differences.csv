@@ -1,0 +1,19 @@
+mean_diff,std_err,ci_lower_t,ci_upper_t,ci_lower_boot,ci_upper_boot,p_value,baseline_policy,benchmark_policy,metric,metric_col,direction,n_instances
+151521.3,20700.01,108798.58,194244.02,113884.28,191667.9,0.0,Deterministic_MILP,Stochastic_MILP,Total Cost ($),total_cost,lower_is_better,25
+775.63,92.6,584.51,966.75,603.25,958.49,0.0,Deterministic_MILP,Stochastic_MILP,Unmet Demand (units),unmet_demand,lower_is_better,25
+-8579.65,1155.31,-10964.09,-6195.2,-10841.84,-6331.15,0.0,Deterministic_MILP,Stochastic_MILP,Transport Cost ($),transport_cost,lower_is_better,25
+-0.02,0.0,-0.03,-0.02,-0.03,-0.02,0.0,Deterministic_MILP,Stochastic_MILP,Mean Fill Rate,mean_fill_rate,higher_is_better,25
+-0.07,0.01,-0.09,-0.05,-0.09,-0.05,0.0,Deterministic_MILP,Stochastic_MILP,Worst Facility Fill Rate,worst_fill_rate,higher_is_better,25
+0.07,0.01,0.05,0.09,0.05,0.09,0.0,Deterministic_MILP,Stochastic_MILP,Coverage Disparity,coverage_disparity,lower_is_better,25
+180173.86,23189.17,131638.38,228709.35,137694.24,227079.61,0.0,Greedy,Stochastic_MILP,Total Cost ($),total_cost,lower_is_better,20
+816.8,94.55,621.66,1011.94,642.34,1003.66,0.0,Greedy,Stochastic_MILP,Unmet Demand (units),unmet_demand,lower_is_better,25
+-5912.79,893.0,-7755.85,-4069.73,-7602.24,-4203.3,0.0,Greedy,Stochastic_MILP,Transport Cost ($),transport_cost,lower_is_better,25
+-0.02,0.0,-0.02,-0.01,-0.02,-0.01,0.00314,Greedy,Stochastic_MILP,Mean Fill Rate,mean_fill_rate,higher_is_better,25
+-0.14,0.02,-0.19,-0.09,-0.19,-0.1,0.0,Greedy,Stochastic_MILP,Worst Facility Fill Rate,worst_fill_rate,higher_is_better,25
+0.14,0.02,0.09,0.19,0.1,0.19,0.0,Greedy,Stochastic_MILP,Coverage Disparity,coverage_disparity,lower_is_better,25
+165555.51,22164.02,119705.75,211405.27,122642.57,209757.92,0.0,Proportional,Stochastic_MILP,Total Cost ($),total_cost,lower_is_better,24
+680.92,127.07,418.66,943.18,427.42,918.91,2e-05,Proportional,Stochastic_MILP,Unmet Demand (units),unmet_demand,lower_is_better,25
+-4740.12,1047.96,-6903.01,-2577.24,-6752.49,-2746.9,0.00014,Proportional,Stochastic_MILP,Transport Cost ($),transport_cost,lower_is_better,25
+0.0,0.01,-0.03,0.03,-0.02,0.03,0.94781,Proportional,Stochastic_MILP,Mean Fill Rate,mean_fill_rate,higher_is_better,25
+-0.05,0.02,-0.1,-0.0,-0.09,-0.0,0.04111,Proportional,Stochastic_MILP,Worst Facility Fill Rate,worst_fill_rate,higher_is_better,25
+0.01,0.04,-0.07,0.09,-0.06,0.08,0.76066,Proportional,Stochastic_MILP,Coverage Disparity,coverage_disparity,lower_is_better,25
