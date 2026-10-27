@@ -68,11 +68,11 @@ render_provenance_sidebar()
 # Main Workspace Tabs
 tab_overview, tab_lab, tab_explain, tab_stress, tab_governance = st.tabs(
     [
-        "📊 Network Overview",
-        "🧪 Scenario Lab",
-        "🔍 Explainability & AI",
-        "⚡ Stress Testing",
-        "🛡️ Responsible AI & Governance",
+        "Network Overview",
+        "Scenario Lab",
+        "Explainability & AI",
+        "Stress Testing",
+        "Responsible AI & Governance",
     ]
 )
 
@@ -379,13 +379,18 @@ with tab_lab:
         # Solver Status Banner
         if cur_res.status in ["OPTIMAL", "FEASIBLE"]:
             st.success(
-                f"**Solver Status: {cur_res.status}** &bull; Solved in **{cur_res.solver_runtime_sec:.3f}s** &bull; "
-                f"Relative Optimality Gap: **{cur_res.mip_gap:.2%}** &bull; Hard Constraints Verified Feasible"
+                f"**Solver Status: {cur_res.status}** · Solved in **{cur_res.solver_runtime_sec:.3f}s** · "
+                f"Relative Optimality Gap: **{cur_res.mip_gap:.2%}** · Hard Constraints Verified Feasible"
+            )
+        elif cur_res.status == "INFEASIBLE":
+            st.error(
+                f"**Solver Status: {cur_res.status}** · Requested minimum coverage or capacity limits cannot be satisfied mathematically. "
+                "No false optimality claims are made."
             )
         else:
-            st.error(
-                f"**Solver Status: {cur_res.status}** &bull; Requested minimum coverage or capacity limits cannot be satisfied mathematically. "
-                "No false optimality claims are made."
+            st.warning(
+                f"**Solver Status: {cur_res.status}** · The solver stopped without a proven-optimal or feasible solution "
+                "(not necessarily infeasible). No optimality claim is made; review results with caution."
             )
             if cur_res.fairness.max_feasible_coverage is not None:
                 st.warning(
@@ -709,12 +714,12 @@ with tab_stress:
 
             if res_stress.status in ["OPTIMAL", "FEASIBLE"]:
                 st.success(
-                    f"**Stress Test Completed: {name}** &bull; Status: {res_stress.status} &bull; "
-                    f"Cost: ${res_stress.total_cost:,.2f} &bull; Fill Rate: {res_stress.fairness.mean_facility_fill_rate:.1%}"
+                    f"**Stress Test Completed: {name}** · Status: {res_stress.status} · "
+                    f"Cost: ${res_stress.total_cost:,.2f} · Fill Rate: {res_stress.fairness.mean_facility_fill_rate:.1%}"
                 )
             else:
                 st.error(
-                    f"**Stress Test Infeasibility Detected: {name}** &bull; Status: {res_stress.status} &bull; "
+                    f"**Stress Test Infeasibility Detected: {name}** · Status: {res_stress.status} · "
                     "Constraints cannot be satisfied mathematically."
                 )
         except Exception as exc:

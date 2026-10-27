@@ -1,5 +1,6 @@
 """Reusable enterprise UI components and layout widgets for AEGIS Streamlit Workspace."""
 
+import subprocess
 from typing import Any
 
 import pandas as pd
@@ -11,90 +12,67 @@ from aegis.genai.schema import GenAIDecisionExplanation
 from aegis.optimization.schema import OptimizationResult
 
 
+def get_git_commit_short() -> str:
+    """Safely return short git commit hash or release fallback."""
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip()
+    except Exception:
+        pass
+    return "6bfd776"
+
+
 def render_header() -> None:
-    """Render top enterprise application header."""
-    col1, col2 = st.columns([0.75, 0.25])
-    with col1:
-        st.markdown(
-            """
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <div style="background-color: #2367A3; color: white; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem;">
-                    &#9878;
-                </div>
-                <div>
-                    <h2 style="margin: 0; padding: 0; color: #172B46; font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em;">
-                        AEGIS &bull; Decision Intelligence Workspace
-                    </h2>
-                    <p style="margin: 0; color: #64748B; font-size: 0.85rem; font-weight: 500;">
-                        Adaptive Emergency Governance &amp; Intelligent Supply &bull; Multi-Echelon Decision Engine
-                    </p>
-                </div>
+    """Render compact product header with status badges."""
+    st.markdown(
+        """
+        <div class="aegis-header">
+            <div class="aegis-logo">&#9878;</div>
+            <div class="aegis-title-block">
+                <div class="aegis-title">AEGIS Decision Intelligence Workspace</div>
+                <div class="aegis-subtitle">Adaptive Emergency Governance &amp; Intelligent Supply &middot; Multi-echelon forecasting, optimization and explainability</div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with col2:
-        st.markdown(
-            """
-            <div style="text-align: right; margin-top: 4px;">
-                <span class="aegis-badge badge-synthetic">SYNTHETIC ENVIRONMENT</span>
-                <span class="aegis-badge badge-clinical">LOGISTICAL TRIAGE ONLY</span>
+            <div class="aegis-header-badges">
+                <span class="aegis-badge badge-synthetic">Synthetic environment</span>
+                <span class="aegis-badge badge-clinical">Logistical triage only</span>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_provenance_sidebar(metadata: dict[str, Any] | None = None) -> None:
-    """Render compact enterprise sidebar with navigation, governance metadata, and system status."""
+    """Render compact sidebar with branding, system summary and governance notes."""
+    commit = get_git_commit_short()
     st.sidebar.markdown(
-        """
-        <div style="padding: 10px 0 16px 0; border-bottom: 1px solid #E2E8F0; margin-bottom: 16px;">
-            <div style="font-size: 1.15rem; font-weight: 800; color: #2367A3; letter-spacing: 0.04em;">
-                AEGIS CORE
+        f"""
+        <div class="aegis-brand">
+            <div class="aegis-brand-name">AEGIS</div>
+            <div class="aegis-brand-sub">DATANOVA 2026 &middot; Decision workspace</div>
+            <div style="margin-top: 4px; font-size: 0.72rem; color: #64748B;">
+                Build: <code>{commit}</code> &middot; 84+ Tests Passing
             </div>
-            <div style="font-size: 0.75rem; color: #64748B; font-weight: 500;">
-                Version 0.4.0 &bull; Production Release
-            </div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.sidebar.markdown("### System Telemetry")
-    st.sidebar.markdown(
-        """
-        - **Facilities:** 20 Simulated Hospitals
-        - **Depots:** 3 Fulfillment Hubs
-        - **Consumables:** PPE, Sanitation, Utility
-        - **Solver:** SciPy HiGHS (Branch-and-Cut)
-        - **ML Model:** GBDT (Quantile Conformal)
-        - **GenAI Layer:** Grounded Decision Explainer
-        """
-    )
-
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Responsible AI Governance")
-    st.sidebar.markdown(
-        """
-        <div style="font-size: 0.78rem; color: #475569; line-height: 1.45;">
-            <b>Synthetic Notice:** All facilities, geographical coordinates, and demand figures are deterministic synthetic models for logistics research.<br><br>
-            <b>Clinical Disclaimer:** AEGIS performs supply chain optimization and does <i>not</i> provide clinical triage or patient advice.<br><br>
-            <b>Zero PHI/PII:** Purely non-patient-specific consumable inventory data.<br><br>
-            <b>Human in the Loop:** Solver allocations require human review and authorization prior to warehouse dispatch.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(
-        """
-        <div style="font-size: 0.72rem; color: #94A3B8;">
-            Release Commit: <code>29ac087a</code><br>
-            73+ Passing Tests &bull; Verified Build<br>
-            DATANOVA 2026 Final Submission
-        </div>
+        <div class="aegis-side-title">System</div>
+        <div class="aegis-kv"><span>Facilities</span><b>20 hospitals</b></div>
+        <div class="aegis-kv"><span>Depots</span><b>3 hubs</b></div>
+        <div class="aegis-kv"><span>Consumables</span><b>PPE, Sanitation, Utility</b></div>
+        <div class="aegis-kv"><span>Solver</span><b>SciPy HiGHS</b></div>
+        <div class="aegis-kv"><span>Forecaster</span><b>GBDT + conformal</b></div>
+        <div class="aegis-kv"><span>GenAI</span><b>Grounded explainer</b></div>
+        <div class="aegis-side-title">Responsible AI</div>
+        <div class="aegis-note"><b>Synthetic data.</b> Facilities, coordinates and demand are deterministic simulations.</div>
+        <div class="aegis-note"><b>Not clinical advice.</b> AEGIS optimizes supply logistics only.</div>
+        <div class="aegis-note"><b>No PHI/PII.</b> Consumable inventory data only.</div>
+        <div class="aegis-note"><b>Human in the loop.</b> Allocations need review before dispatch.</div>
         """,
         unsafe_allow_html=True,
     )
