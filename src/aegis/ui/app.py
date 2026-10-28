@@ -127,8 +127,11 @@ with tab_overview:
 
         tot_stock = sum(stock_dict.values())
 
-        # Run default fast baseline solve if not in session state
-        if st.session_state.get("active_result") is None:
+        # Run default fast baseline solve if not in session state or if overview date changed
+        if (
+            st.session_state.get("active_result") is None
+            or st.session_state.get("active_overview_date") != selected_date
+        ):
             with st.spinner("Initializing baseline allocation engine..."):
                 base_res = optimize(
                     warehouse_stock=stock_dict,
@@ -140,8 +143,28 @@ with tab_overview:
                     realized_demand=scen_set.realized_demand,
                     network=network,
                 )
+                base_exp = AllocationDecisionExplainer(network=network).explain(
+                    result=base_res,
+                    demands=scen_set.point_forecast,
+                    warehouse_stock=stock_dict,
+                    min_service_coverage=0.50,
+                    policy_name="Stochastic_MILP",
+                )
                 st.session_state["active_result"] = base_res
+                st.session_state["active_explanation"] = base_exp
                 st.session_state["active_scenario_set"] = scen_set
+                st.session_state["active_overview_date"] = selected_date
+                st.session_state.pop("last_genai_explanation", None)
+        elif st.session_state.get("active_explanation") is None:
+            st.session_state["active_explanation"] = AllocationDecisionExplainer(
+                network=network
+            ).explain(
+                result=st.session_state["active_result"],
+                demands=scen_set.point_forecast,
+                warehouse_stock=stock_dict,
+                min_service_coverage=0.50,
+                policy_name="Stochastic_MILP",
+            )
 
         res: OptimizationResult = st.session_state["active_result"]
 
@@ -375,6 +398,7 @@ with tab_lab:
                 st.session_state["active_explanation"] = dec_explanation
                 st.session_state["active_scenario_set"] = scen_set_lab
                 st.session_state["active_network"] = net_lab
+                st.session_state.pop("last_genai_explanation", None)
             except Exception as exc:
                 st.error(f"⚠️ Optimization Execution Notice: {exc}")
 
@@ -516,7 +540,7 @@ with tab_explain:
                 # Additivity verification callout
                 if inst_exp.get("is_additive"):
                     st.success(
-                        f"✅ **SHAP Additivity Verified:** Base E[Y] ({inst_exp['base_value']:.2f}) + &sum; &phi; ({inst_exp['shap_sum'] - inst_exp['base_value']:+.2f}) "
+                        f"✅ **SHAP Additivity Verified:** Base E[Y] ({inst_exp['base_value']:.2f}) + \u2211 \u03c6 ({inst_exp['shap_sum'] - inst_exp['base_value']:+.2f}) "
                         f"= Model Prediction ({inst_exp['prediction']:.2f}) (Error: {inst_exp['additivity_error']:.6f} units)"
                     )
                 else:
@@ -613,8 +637,26 @@ with tab_explain:
                 )
             )
 
+        active_scen = st.session_state.get("active_scenario_set")
+        target_dt_str = (
+            str(getattr(active_scen, "target_date", "2025-11-08"))[:10]
+            if active_scen is not None
+            else "2025-11-08"
+        )
+        current_genai_key = (
+            genai_hosp,
+            genai_cat,
+            user_inquiry,
+            target_dt_str,
+            id(cur_opt_result),
+        )
+
         if genai_run_btn or (
-            "last_genai_explanation" not in st.session_state and cur_opt_result is not None
+            cur_opt_result is not None
+            and (
+                "last_genai_explanation" not in st.session_state
+                or st.session_state.get("last_genai_key") != current_genai_key
+            )
         ):
             with st.spinner("Compiling decision context and generating grounded explanation..."):
                 try:
@@ -629,15 +671,28 @@ with tab_explain:
                     pt_forecast = 300.0
                     p10 = 240.0
                     p90 = 380.0
+                    shap_base = 333.14
                     top_shap = None
 
                     if not focal_rows.empty and shap_explainer.is_available:
-                        last_row = focal_rows.tail(1)
-                        inst_res = shap_explainer.explain_instance(last_row)
-                        pt_forecast = inst_res["prediction"]
+                        dt_rows = focal_rows[
+                            pd.to_datetime(focal_rows["date"]).dt.strftime("%Y-%m-%d")
+                            == target_dt_str
+                        ]
+                        target_row = dt_rows.tail(1) if not dt_rows.empty else focal_rows.tail(1)
+                        inst_res = shap_explainer.explain_instance(target_row)
+                        pt_forecast = float(inst_res.get("prediction", 300.0))
+                        shap_base = float(inst_res.get("base_value", 333.14))
                         p10 = pt_forecast * 0.82
                         p90 = pt_forecast * 1.25
                         top_shap = inst_res.get("waterfall", [])[:4]
+
+                    if active_scen is not None:
+                        pt_forecast = float(
+                            active_scen.point_forecast.get((genai_hosp, genai_cat), pt_forecast)
+                        )
+                        p10 = float(active_scen.lower_bound.get((genai_hosp, genai_cat), p10))
+                        p90 = float(active_scen.upper_bound.get((genai_hosp, genai_cat), p90))
 
                     record = build_context_record(
                         result=cur_opt_result,
@@ -647,12 +702,12 @@ with tab_explain:
                         p10_lower=p10,
                         p90_upper=p90,
                         shap_contributions=top_shap,
-                        shap_base_value=230.15,
+                        shap_base_value=shap_base,
                         scenario_deltas={
                             "name": "Active Scenario",
                             "surge_pct": 0.0,
-                            "stock_ratio_pct": 100.0,
-                            "vehicle_cap": 300,
+                            "stock_ratio_pct": 125.0,
+                            "vehicle_cap": 2500,
                         },
                         user_query=user_inquiry if user_inquiry else None,
                     )
@@ -660,6 +715,7 @@ with tab_explain:
                     genai_service = DecisionExplanationService()
                     explanation = genai_service.explain(record)
                     st.session_state["last_genai_explanation"] = explanation
+                    st.session_state["last_genai_key"] = current_genai_key
                 except Exception as exc:
                     st.error(f"GenAI explanation generation encountered a temporary issue: {exc}")
 
@@ -749,8 +805,18 @@ with tab_stress:
                 network=net_stress,
             )
 
+            dec_stress = AllocationDecisionExplainer(network=net_stress).explain(
+                result=res_stress,
+                demands=scen_stress.point_forecast,
+                warehouse_stock=stk_s,
+                min_service_coverage=alpha,
+                policy_name="Stochastic_MILP",
+            )
             st.session_state["active_result"] = res_stress
+            st.session_state["active_explanation"] = dec_stress
+            st.session_state["active_scenario_set"] = scen_stress
             st.session_state["last_stress_scenario"] = name
+            st.session_state.pop("last_genai_explanation", None)
 
             if res_stress.status in ["OPTIMAL", "FEASIBLE"]:
                 st.success(

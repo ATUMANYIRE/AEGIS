@@ -87,6 +87,16 @@ class GroundingValidator:
         add_num(record.optimization.total_unmet_demand)
         add_num(record.optimization.facility_allocated_units)
         add_num(record.optimization.facility_fill_rate_pct)
+        add_num(
+            max(
+                0.0,
+                record.forecast.point_forecast - record.optimization.facility_allocated_units,
+            )
+        )
+
+        # Binding constraints
+        for b in record.binding_constraints:
+            add_num(b.utilization_pct)
 
         # Fairness
         add_num(record.fairness.min_fill_rate_pct)
@@ -124,6 +134,7 @@ class GroundingValidator:
 
         # Standard non-statistical numbers to ignore (e.g. 1, 2, 7 for days of week, 80% for intervals, 2026 for year)
         ignorable_constants = {
+            0.0,
             1.0,
             2.0,
             3.0,

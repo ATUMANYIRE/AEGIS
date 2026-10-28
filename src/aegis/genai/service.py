@@ -403,8 +403,14 @@ def build_context_record(
             (s for s in shorts if s.hospital_id == facility_id and s.category_id == category_id),
             None,
         )
-        fac_demand = fac_shortage.demand_units if fac_shortage else point_forecast
-        fac_fill = round((fac_allocated / fac_demand) * 100.0, 1) if fac_demand > 0 else 100.0
+        fac_demand = (
+            point_forecast
+            if point_forecast > 0
+            else (fac_shortage.demand_units if fac_shortage else 0.0)
+        )
+        fac_fill = (
+            round(min(100.0, (fac_allocated / fac_demand) * 100.0), 1) if fac_demand > 0 else 100.0
+        )
 
         total_d = sum(s.demand_units for s in shorts)
         total_unmet = sum(s.shortage_units for s in shorts)
@@ -452,9 +458,11 @@ def build_context_record(
             "REGIONAL_REFERRAL": [],
         }
         for s in shorts:
-            h_t = hosp_map.get(s.hospital_id, h_def).tier
+            h_t = hosp_map.get(s.hospital_id, h_def).tier.upper().replace(" ", "_")
+            if h_t == "SPECIALTY":
+                h_t = "SPECIALTY_CLINIC"
             if h_t in tier_fills:
-                tier_fills[h_t].append(s.fill_rate * 100.0)
+                tier_fills[h_t].append(min(100.0, s.fill_rate * 100.0))
 
         trauma_avg = (
             round(sum(tier_fills["LEVEL_1_TRAUMA"]) / max(1, len(tier_fills["LEVEL_1_TRAUMA"])), 1)

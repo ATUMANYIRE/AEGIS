@@ -187,12 +187,16 @@ def test_build_context_record_from_real_optimization():
 
     assert record.forecast.facility_id == "H01"
     assert "Proportional" in record.optimization.policy
-    assert record.fairness.trauma_tier_fill_rate_pct >= 0.0
+    assert record.fairness.trauma_tier_fill_rate_pct > 0.0
+    assert record.fairness.community_tier_fill_rate_pct > 0.0
+    assert record.fairness.specialty_tier_fill_rate_pct > 0.0
+    assert 0.0 <= record.optimization.facility_fill_rate_pct <= 100.0
     assert len(record.top_shap_contributions) == 1
 
     service = DecisionExplanationService()
     exp = service.explain(record)
     assert exp.grounding_audit.is_grounded
+    assert exp.grounding_audit.unverified_claims == []
 
 
 def test_build_context_record_none_result_graceful_fallback():

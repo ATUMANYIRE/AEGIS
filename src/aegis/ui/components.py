@@ -102,8 +102,9 @@ def render_hospital_risk_ranking(result: OptimizationResult) -> None:
         hosp_summary[s.hospital_id]["Penalty ($)"] += s.shortage_penalty
 
     df_rank = pd.DataFrame(list(hosp_summary.values()))
-    df_rank["Fill Rate"] = (df_rank["Allocated"] / df_rank["Total Demand"] * 100).fillna(
-        100.0
+    satisfied = (df_rank["Total Demand"] - df_rank["Unmet Demand"]).clip(lower=0.0)
+    df_rank["Fill Rate"] = (satisfied / df_rank["Total Demand"] * 100).fillna(100.0).clip(
+        0.0, 100.0
     ).round(1).astype(str) + "%"
     df_rank["Total Demand"] = df_rank["Total Demand"].round(1)
     df_rank["Unmet Demand"] = df_rank["Unmet Demand"].round(1)
@@ -123,42 +124,39 @@ def render_hospital_risk_ranking(result: OptimizationResult) -> None:
 
 def render_decision_explanation_card(explanation: DecisionExplanation) -> None:
     """Render executive decision explanation card grounded in mathematical constraints."""
+    import html
+
     status_badge = (
         '<span class="aegis-badge badge-success">OPTIMAL / FEASIBLE</span>'
         if explanation.solver_status in ["OPTIMAL", "FEASIBLE"]
         else '<span class="aegis-badge badge-danger">INFEASIBLE TARGET</span>'
     )
-
-    st.markdown(
-        f"""
-        <div class="aegis-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="font-weight: 700; font-size: 1.1rem; color: #172B36;">
-                    Operational Decision Summary &bull; {explanation.policy}
-                </div>
-                <div>{status_badge}</div>
-            </div>
-            <div style="font-size: 0.92rem; color: #334155; line-height: 1.55; margin-bottom: 14px;">
-                {explanation.executive_summary}
-            </div>
-            <div style="background-color: #F5F3ED; border-left: 3px solid #216C65; padding: 10px 14px; border-radius: 4px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">
-                    Key Optimization Drivers
-                </div>
-                <ul style="margin: 0; padding-left: 18px; font-size: 0.85rem; color: #5B6B75;">
-                    {"".join(f'<li style="margin-bottom: 4px;">{d}</li>' for d in explanation.key_drivers)}
-                </ul>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    drivers_html = "".join(
+        f'<li style="margin-bottom: 4px;">{html.escape(str(d))}</li>'
+        for d in explanation.key_drivers
     )
+    card_html = (
+        '<div class="aegis-card">'
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">'
+        f'<div style="font-weight: 700; font-size: 1.1rem; color: #172B36;">Operational Decision Summary &middot; {html.escape(str(explanation.policy))}</div>'
+        f"<div>{status_badge}</div>"
+        "</div>"
+        f'<div style="font-size: 0.92rem; color: #334155; line-height: 1.55; margin-bottom: 14px;">{html.escape(str(explanation.executive_summary))}</div>'
+        '<div style="background-color: #F5F3ED; border-left: 3px solid #216C65; padding: 10px 14px; border-radius: 4px;">'
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">Key Optimization Drivers</div>'
+        f'<ul style="margin: 0; padding-left: 18px; font-size: 0.85rem; color: #5B6B75;">{drivers_html}</ul>'
+        "</div>"
+        "</div>"
+    )
+    st.markdown(card_html, unsafe_allow_html=True)
 
 
 def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
     """Render structured, grounded GenAI operational intelligence explanation with audit trail."""
+    import html
+
     prov_badge = (
-        f'<span class="aegis-badge badge-clinical">{genai_exp.grounding_audit.provider_used.upper()}</span>'
+        f'<span class="aegis-badge badge-clinical">{html.escape(genai_exp.grounding_audit.provider_used.upper())}</span>'
         if not genai_exp.is_fallback
         else '<span class="aegis-badge badge-synthetic">DETERMINISTIC VERIFIED FALLBACK</span>'
     )
@@ -168,67 +166,38 @@ def render_genai_explanation_card(genai_exp: GenAIDecisionExplanation) -> None:
         else '<span class="aegis-badge badge-danger">UNGROUNDED CLAIMS DETECTED</span>'
     )
 
-    st.markdown(
-        f"""
-        <div class="aegis-card" style="border: 1px solid #B4C6FC; background: linear-gradient(180deg, #FFFFFF 0%, #F5F3ED 100%);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.25rem;">🤖</span>
-                    <span style="font-weight: 700; font-size: 1.1rem; color: #172B36;">
-                        Grounded GenAI Decision Intelligence
-                    </span>
-                </div>
-                <div style="display: flex; gap: 6px;">
-                    {prov_badge}
-                    {grounded_badge}
-                </div>
-            </div>
-
-            <div style="font-size: 0.95rem; color: #172B36; font-weight: 600; line-height: 1.5; margin-bottom: 12px; padding: 10px 14px; background-color: #F1F5F9; border-radius: 6px; border-left: 4px solid #216C65;">
-                {genai_exp.executive_summary}
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">
-                        📈 Demand &amp; TreeSHAP Rationale
-                    </div>
-                    <div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">
-                        {genai_exp.forecast_rationale}
-                    </div>
-                </div>
-
-                <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #378D73; text-transform: uppercase; margin-bottom: 6px;">
-                        ⚖️ Constraints &amp; Optimization
-                    </div>
-                    <div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">
-                        {genai_exp.allocation_rationale}
-                    </div>
-                </div>
-            </div>
-
-            <div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px; margin-bottom: 14px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: #C78B31; text-transform: uppercase; margin-bottom: 6px;">
-                    🛡️ Clinical Tier Equity &amp; Shortage Assessment
-                </div>
-                <div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">
-                    {genai_exp.fairness_and_risk_assessment}
-                </div>
-            </div>
-
-            <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; padding: 12px 14px; border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: #1E40AF; text-transform: uppercase; margin-bottom: 6px;">
-                    📦 Recommended Operational Supply Action (Logistical Only)
-                </div>
-                <div style="font-size: 0.85rem; color: #1E3A8A; line-height: 1.45;">
-                    {genai_exp.recommended_operational_action}
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    card_html = (
+        '<div class="aegis-card" style="border: 1px solid #DDD9CE; background: linear-gradient(180deg, #FFFFFF 0%, #FBFAF6 100%);">'
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">'
+        '<div style="display: flex; align-items: center; gap: 8px;">'
+        '<span style="font-weight: 700; font-size: 1.1rem; color: #172B36;">Grounded GenAI Decision Intelligence</span>'
+        "</div>"
+        f'<div style="display: flex; gap: 6px;">{prov_badge}{grounded_badge}</div>'
+        "</div>"
+        '<div style="font-size: 0.95rem; color: #172B36; font-weight: 600; line-height: 1.5; margin-bottom: 12px; padding: 10px 14px; background-color: #F5F3ED; border-radius: 6px; border-left: 4px solid #216C65;">'
+        f"{html.escape(genai_exp.executive_summary)}"
+        "</div>"
+        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">'
+        '<div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">'
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">Demand &amp; TreeSHAP Rationale</div>'
+        f'<div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">{html.escape(genai_exp.forecast_rationale)}</div>'
+        "</div>"
+        '<div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px;">'
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #216C65; text-transform: uppercase; margin-bottom: 6px;">Constraints &amp; Optimization</div>'
+        f'<div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">{html.escape(genai_exp.allocation_rationale)}</div>'
+        "</div>"
+        "</div>"
+        '<div style="background-color: #FFFFFF; border: 1px solid #DDD9CE; padding: 12px 14px; border-radius: 6px; margin-bottom: 14px;">'
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #8A5A1E; text-transform: uppercase; margin-bottom: 6px;">Clinical Tier Equity &amp; Shortage Assessment</div>'
+        f'<div style="font-size: 0.84rem; color: #334155; line-height: 1.45;">{html.escape(genai_exp.fairness_and_risk_assessment)}</div>'
+        "</div>"
+        '<div style="background-color: #F5F3ED; border: 1px solid #DDD9CE; border-left: 4px solid #4F9A8B; padding: 12px 14px; border-radius: 6px; margin-bottom: 4px;">'
+        '<div style="font-size: 0.8rem; font-weight: 700; color: #172B36; text-transform: uppercase; margin-bottom: 6px;">Recommended Operational Supply Action (Logistical Only)</div>'
+        f'<div style="font-size: 0.85rem; color: #172B36; line-height: 1.45;">{html.escape(genai_exp.recommended_operational_action)}</div>'
+        "</div>"
+        "</div>"
     )
+    st.markdown(card_html, unsafe_allow_html=True)
 
     with st.expander("🔍 Factual Grounding & Security Audit Trail"):
         a = genai_exp.grounding_audit

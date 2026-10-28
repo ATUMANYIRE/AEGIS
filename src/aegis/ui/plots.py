@@ -75,7 +75,7 @@ def plot_facility_map(
                         line={"color": ACCENT_PRIMARY, "width": line_width},
                         opacity=0.65,
                         hoverinfo="text",
-                        hovertext=f"Active Route {w_id} &rarr; {h_id}<br>Volume: {vol:,} units<br>Distance: {net.distances_km[(w_id, h_id)]:.1f} km",
+                        hovertext=f"Active Route {w_id} \u2192 {h_id}<br>Volume: {vol:,} units<br>Distance: {net.distances_km[(w_id, h_id)]:.1f} km",
                         showlegend=False,
                     )
                 )
@@ -247,6 +247,7 @@ def plot_cost_waterfall(result: OptimizationResult) -> go.Figure:
                 "Total Objective Cost",
             ],
             textposition="outside",
+            cliponaxis=False,
             text=[
                 f"${result.transportation_cost:,.2f}",
                 f"${result.fixed_route_cost:,.2f}",
@@ -268,10 +269,12 @@ def plot_cost_waterfall(result: OptimizationResult) -> go.Figure:
         )
     )
 
+    max_cost = max(result.total_cost, 1.0)
     layout = BASE_LAYOUT.copy()
     layout.update(
         title="<b>Total Supply Chain Objective Cost Breakdown</b>",
         yaxis_title="Cost ($ USD)",
+        yaxis_range=[0, max_cost * 1.18],
         height=380,
     )
     fig.update_layout(layout)
@@ -312,6 +315,7 @@ def plot_fill_rate_distribution(
             marker_color=colors,
             text=[f"{fr:.1%}" for fr in df_plot["fill_rate"]],
             textposition="outside",
+            cliponaxis=False,
             hovertext=[
                 f"Hospital: {h}<br>Fill Rate: {fr:.2%}"
                 for h, fr in zip(df_plot["hospital_id"], df_plot["fill_rate"], strict=False)
@@ -325,8 +329,8 @@ def plot_fill_rate_distribution(
         y=min_service_coverage * 100,
         line_dash="dash",
         line_color=DANGER_COLOR,
-        annotation_text=f"Equity Target (&alpha;={min_service_coverage:.0%})",
-        annotation_position="top left",
+        annotation_text=f"Equity Target (\u03b1={min_service_coverage:.0%})",
+        annotation_position="bottom right",
     )
 
     layout = BASE_LAYOUT.copy()
@@ -358,14 +362,17 @@ def plot_shap_summary(global_importance_df: pd.DataFrame) -> go.Figure:
             marker={"color": ACCENT_PRIMARY, "line": {"color": "#1A4F7D", "width": 1}},
             text=[f"{v:.1f}" for v in df_top["mean_abs_shap"]],
             textposition="outside",
+            cliponaxis=False,
             hoverinfo="x+y",
         )
     )
 
+    max_shap = float(df_top["mean_abs_shap"].max()) if not df_top.empty else 1.0
     layout = BASE_LAYOUT.copy()
     layout.update(
         title="<b>TreeSHAP Global Feature Importance</b> (Mean |SHAP Value| Across Observations)",
         xaxis_title="Mean Impact on Demand Prediction (|SHAP| Units)",
+        xaxis_range=[0, max_shap * 1.15],
         yaxis_title="Feature Dimension",
         height=420,
     )
@@ -405,6 +412,7 @@ def plot_shap_waterfall(instance_dict: dict[str, Any]) -> go.Figure:
             y=y_values,
             text=texts,
             textposition="outside",
+            cliponaxis=False,
             connector={"line": {"color": BORDER_COLOR}},
             decreasing={"marker": {"color": ACCENT_SECONDARY}},
             increasing={"marker": {"color": DANGER_COLOR}},
@@ -443,7 +451,9 @@ def plot_policy_benchmark_comparison(summary_df: pd.DataFrame | None = None) -> 
             marker_color=ACCENT_PRIMARY,
             text=[f"${c:,.0f}" for c in costs],
             textposition="outside",
+            cliponaxis=False,
             yaxis="y",
+            offsetgroup="cost",
         )
     )
     fig.add_trace(
@@ -454,20 +464,30 @@ def plot_policy_benchmark_comparison(summary_df: pd.DataFrame | None = None) -> 
             marker_color=WARNING_COLOR,
             text=[f"{u:,.0f}" for u in unmet],
             textposition="outside",
+            cliponaxis=False,
             yaxis="y2",
+            offsetgroup="unmet",
         )
     )
 
+    max_c = max(costs) if costs else 1.0
+    max_u = max(unmet) if unmet else 1.0
     layout = BASE_LAYOUT.copy()
     layout.update(
         title="<b>Audited Policy Benchmark Comparison</b> (Common Feasible Subset N=16)",
         xaxis_title="Allocation Policy",
-        yaxis={"title": "Mean Total Cost ($ USD)", "side": "left", "showgrid": True},
+        yaxis={
+            "title": "Mean Total Cost ($ USD)",
+            "side": "left",
+            "showgrid": True,
+            "range": [0, max_c * 1.18],
+        },
         yaxis2={
             "title": "Mean Unmet Demand (Units)",
             "side": "right",
             "overlaying": "y",
             "showgrid": False,
+            "range": [0, max_u * 1.18],
         },
         legend={"orientation": "h", "yanchor": "top", "y": -0.3, "xanchor": "center", "x": 0.5},
         barmode="group",
