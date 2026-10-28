@@ -150,7 +150,24 @@ def main():
             click_res = eval_js(ws, msg_id, click_js)
             msg_id += 1
             print(f"Click result: {click_res}")
-            time.sleep(4)
+            for _ in range(12):
+                time.sleep(1)
+                ready_state = eval_js(
+                    ws,
+                    msg_id,
+                    """
+                    (() => {
+                        window.dispatchEvent(new Event('resize'));
+                        const skels = Array.from(document.querySelectorAll('[data-testid="stSkeleton"]'))
+                            .filter(el => el.offsetParent !== null && el.getBoundingClientRect().height > 0).length;
+                        return skels;
+                    })()
+                    """,
+                )
+                msg_id += 1
+                if ready_state == 0:
+                    time.sleep(1)
+                    break
 
             # Check DOM state
             audit_js = """
