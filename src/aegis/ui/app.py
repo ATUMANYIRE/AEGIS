@@ -63,6 +63,13 @@ st.set_page_config(
 apply_custom_css()
 init_session_state()
 
+_current_build = get_git_commit_short()
+if st.session_state.get("_active_build_commit") != _current_build:
+    st.session_state["_active_build_commit"] = _current_build
+    st.session_state["active_result"] = None
+    st.session_state["active_explanation"] = None
+    st.session_state.pop("last_genai_explanation", None)
+
 # Load Caches
 forecaster, shap_explainer = get_cached_model_and_explainer()
 df_featured = get_cached_featured_data()
